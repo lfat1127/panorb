@@ -240,9 +240,11 @@ void main(void)
 
         let gl = null;
 
-        const CAMERA_DIST = 5;
+        const CAMERA_DIST = 1.8;
         const ANIM_DURATION = 500;
         const IMAGE_PATH = "assets/";
+        const TINY_PLANET_FOV = 120;
+        const TINY_PLANET_PITCH = 90;
 
         document.addEventListener("DOMContentLoaded", () => {
             let success = initWebGL("webglView");
@@ -268,6 +270,7 @@ void main(void)
 
                 gl.canvas = canvas;
                 gl.camera = new OrbitCamera(0, 0, CAMERA_DIST, 0, 0, 0);
+                gl.camera.rotateTo(new Vector3(TINY_PLANET_PITCH, 0, 0));
                 log("Created an orbit camera.");
                 log(gl.camera);
 
@@ -278,10 +281,10 @@ void main(void)
                 gl.nearPlane = 0.1;
                 gl.farPlane = 100;
                 gl.wireframeEnabled = false;
-                gl.textureEnabled = false;
+                gl.textureEnabled = true;
                 gl.pointers = [];
 
-                gl.sphere = new Sphere(gl, 1.0, 36, 18, true);
+                gl.sphere = new Sphere(gl, 1.0, 100, 100, true);
                 printSphere();
                 log(gl.sphere);
 
@@ -355,7 +358,7 @@ void main(void)
             gl.screenWidth = gl.canvas.width;
             gl.screenHeight = gl.canvas.height;
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-            gl.matrixProjection = Matrix4.makePerspective(45,
+            gl.matrixProjection = Matrix4.makePerspective(TINY_PLANET_FOV,
                 gl.screenWidth / gl.screenHeight, 0.1, 1000);
             log("Window is resized: " + gl.screenWidth + " x " + gl.screenHeight);
         }
@@ -547,7 +550,7 @@ void main(void)
             let deltaDistance = gl.camera.distance - CAMERA_DIST;
             gl.camera.moveForward(deltaDistance, ANIM_DURATION);
             gl.camera.shiftTo(new Vector3(0, 0, 0), ANIM_DURATION);
-            gl.camera.rotateTo(new Vector3(0, 0, 0), ANIM_DURATION);
+            gl.camera.rotateTo(new Vector3(TINY_PLANET_PITCH, 0, 0), ANIM_DURATION);
         }
 
         function logWebGL(gl) {
@@ -600,7 +603,8 @@ void main(void)
 
             let rangeSector = document.getElementById("rangeSector");
             let labelSector = document.getElementById("labelSector");
-            rangeSector.value = 36;
+            rangeSector.value = 100;
+            labelSector.innerHTML = 100;
             rangeSector.addEventListener("input", e => {
                 labelSector.innerHTML = rangeSector.value;
                 gl.sphere.setSectorCount(parseFloat(rangeSector.value));
@@ -610,7 +614,8 @@ void main(void)
 
             let rangeStack = document.getElementById("rangeStack");
             let labelStack = document.getElementById("labelStack");
-            rangeStack.value = 18;
+            rangeStack.value = 100;
+            labelStack.innerHTML = 100;
             rangeStack.addEventListener("input", e => {
                 labelStack.innerHTML = rangeStack.value;
                 gl.sphere.setStackCount(parseFloat(rangeStack.value));
@@ -619,7 +624,7 @@ void main(void)
             });
 
             let checkTexture = document.getElementById("checkTexture");
-            checkTexture.checked = false;
+            checkTexture.checked = true;
             checkTexture.addEventListener("click", e => { gl.textureEnabled = checkTexture.checked; });
 
             let checkWireframe = document.getElementById("checkWireframe");
@@ -636,15 +641,15 @@ void main(void)
 
             let buttonReset = document.getElementById("buttonReset");
             buttonReset.addEventListener("click", e => {
-                gl.sphere.set(1, 36, 18, true);
+                gl.sphere.set(1, 100, 100, true);
                 rangeRadius.value = 1; labelRadius.innerHTML = 1;
-                rangeSector.value = 36; labelSector.innerHTML = 36;
-                rangeStack.value = 18; labelStack.innerHTML = 18;
-                checkTexture.checked = false;
+                rangeSector.value = 100; labelSector.innerHTML = 100;
+                rangeStack.value = 100; labelStack.innerHTML = 100;
+                checkTexture.checked = true;
                 checkWireframe.checked = false;
                 checkSmooth.checked = true;
                 checkNormal.checked = false;
-                gl.textureEnabled = false;
+                gl.textureEnabled = true;
                 gl.wireframeEnabled = false;
                 printSphere();
                 resetCamera();
