@@ -50,6 +50,20 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             line-height: 110%;
         }
 
+        .contentblock.panel-hidden .rightblock {
+            display: none;
+        }
+
+        .panel-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: auto;
+            z-index: 10;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
         #webglView {
             width: 100%;
             height: 100%;
@@ -240,12 +254,12 @@ void main(void)
 
         let gl = null;
 
-        const CAMERA_DIST = 1.8;
+        const CAMERA_DIST = 1;
         const ANIM_DURATION = 500;
         const IMAGE_PATH = "assets/";
         const TINY_PLANET_FOV = 120;
         const TINY_PLANET_PITCH = 90;
-        const initialRadius = 2;
+        const initialRadius = 1;
 
         document.addEventListener("DOMContentLoaded", () => {
             let success = initWebGL("webglView");
@@ -591,6 +605,16 @@ void main(void)
         }
 
         function initHtmlElements() {
+            let contentBlock = document.querySelector(".contentblock");
+            let buttonTogglePanel = document.getElementById("buttonTogglePanel");
+            buttonTogglePanel.addEventListener("click", () => {
+                contentBlock.classList.toggle("panel-hidden");
+                buttonTogglePanel.textContent = contentBlock.classList.contains("panel-hidden")
+                    ? "Show Controls"
+                    : "Hide Controls";
+                handleResize();
+            });
+
             let checkNormal = document.getElementById("checkNormal");
             checkNormal.checked = true;
             checkNormal.addEventListener("click", e => { gl.sphere.reverseNormals(); });
@@ -628,6 +652,17 @@ void main(void)
                 printSphere();
             });
 
+            let rangeCameraDist = document.getElementById("rangeCameraDist");
+            let labelCameraDist = document.getElementById("labelCameraDist");
+            rangeCameraDist.value = CAMERA_DIST;
+            labelCameraDist.innerHTML = CAMERA_DIST;
+            rangeCameraDist.addEventListener("input", e => {
+                let dist = parseFloat(rangeCameraDist.value);
+                labelCameraDist.innerHTML = dist.toFixed(1);
+                let delta = gl.camera.distance - dist;
+                gl.camera.moveForward(delta);
+            });
+
             let checkTexture = document.getElementById("checkTexture");
             checkTexture.checked = true;
             checkTexture.addEventListener("click", e => { gl.textureEnabled = checkTexture.checked; });
@@ -655,6 +690,7 @@ void main(void)
                 checkSmooth.checked = true;
                 checkNormal.checked = true;
                 gl.sphere.reverseNormals();
+                rangeCameraDist.value = CAMERA_DIST; labelCameraDist.innerHTML = CAMERA_DIST;
                 gl.textureEnabled = true;
                 gl.wireframeEnabled = false;
                 printSphere();
@@ -675,6 +711,7 @@ void main(void)
     <div class="contentblock">
 
         <div class="mainblock">
+            <button id="buttonTogglePanel" class="panel-toggle" type="button">Hide Controls</button>
             <canvas id="webglView" width="300" height="300"></canvas>
             <pre id="info"></pre>
         </div>
@@ -706,6 +743,15 @@ void main(void)
                     <input id="rangeStack" class="slider" type="range" min="2" max="100" step="1" value="18"
                         style="flex:1;">
                     <label id="labelStack" style="flex:0 0 2em;margin-left:5px;">18</label>
+                </div>
+            </div>
+
+            <div>
+                <span>Camera Distance</span><br>
+                <div style="display:flex;align-items:center;">
+                    <input id="rangeCameraDist" class="slider" type="range" min="0.1" max="10" step="0.1" value="0.5"
+                        style="flex:1;">
+                    <label id="labelCameraDist" style="flex:0 0 2em;margin-left:5px;">0.5</label>
                 </div>
             </div>
 
