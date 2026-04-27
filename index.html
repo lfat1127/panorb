@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+==========================================================================
+Replica of Song Ho Ahn's test_sphere.html
+Original: https://www.songho.ca/webgl/test_sphere.html
+==========================================================================
+-->
+
+<head>
+    <title>Sphere</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style type="text/css">
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: arial, helvetica, sans-serif;
+            box-sizing: border-box;
+        }
+
+        p {
+            margin: 0 0 1em 0;
+        }
+
+        .contentblock {
+            display: flex;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            padding: 10px;
+            line-height: 0;
+        }
+
+        .mainblock {
+            position: relative;
+            flex: 1 0 300px;
+            border: 1px solid #ddd;
+        }
+
+        .rightblock {
+            flex: 0 0 250px;
+            height: 100%;
+            overflow: auto;
+            margin-left: 10px;
+            line-height: 110%;
+        }
+
+        #webglView {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #info {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-top: 5px;
+            margin-right: 5px;
+            line-height: 110%;
+        }
+
+        input[type="button"],
+        button {
+            width: 100%;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            height: 5px;
+            background-color: #e0e0e0;
+            margin: 10px 0 20px 0;
+            width: 100%;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            background-color: #07f;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            background-color: #07f;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb:hover,
+        .slider::-webkit-slider-thumb:active {
+            background-color: #05f;
+        }
+
+        .slider::-moz-range-thumb:hover,
+        .slider::-moz-range-thumb:active {
+            background-color: #05f;
+        }
+    </style>
+
+    <!-- Song Ho's helper libraries (downloaded locally) -->
+    <script src="js/lib/Logger.js"></script>
+    <script src="js/lib/Vectors.js"></script>
+    <script src="js/lib/Matrices.js"></script>
+    <script src="js/lib/Quaternion.js"></script>
+    <script src="js/lib/Light.js"></script>
+    <script src="js/lib/Material.js"></script>
+    <script src="js/lib/Timer.js"></script>
+    <script src="js/lib/FrameRate.js"></script>
+    <script src="js/lib/AnimationMode.js"></script>
+    <script src="js/lib/OrbitCamera.js"></script>
+    <script src="js/lib/ShaderManager.js"></script>
+    <script src="js/Sphere.js"></script>
+    <script src="js/lib/webglUtils.js"></script>
+
+    <!-- vertex shader -->
+    <script id="vert-simple" type="x-shader/x-vertex">
+attribute vec3 vertexPosition;
+attribute vec3 vertexNormal;
+attribute vec2 vertexTexCoord0;
+
+uniform mat4 matrixNormal;
+uniform mat4 matrixView;
+uniform mat4 matrixModelView;
+uniform mat4 matrixModelViewProjection;
+uniform bool lightEnabled;
+uniform vec4 lightPosition;
+uniform vec4 lightColor;
+uniform vec3 lightAttenuations;
+uniform vec4 materialAmbient;
+uniform vec4 materialDiffuse;
+uniform vec4 materialSpecular;
+uniform float materialShininess;
+
+varying vec4 ambient;
+varying vec4 diffuse;
+varying vec4 normalVec;
+varying vec3 lightVec;
+varying vec3 halfVec;
+varying float lightDistance;
+varying vec2 texCoord0;
+
+void main(void)
+{
+    gl_Position = matrixModelViewProjection * vec4(vertexPosition, 1);
+
+    if(!lightEnabled)
+    {
+        diffuse = materialDiffuse;
+        return;
+    }
+
+    ambient = materialAmbient;
+    diffuse = materialDiffuse * lightColor;
+
+    if(lightPosition.w == 0.0)
+    {
+        lightVec = lightPosition.xyz;
+        lightDistance = -1.0;
+    }
+    else
+    {
+        vec4 eyeVertexVec = matrixModelView * vec4(vertexPosition, 1.0);
+        lightVec = lightPosition.xyz - eyeVertexVec.xyz;
+        lightDistance = sqrt(dot(lightVec, lightVec));
+        lightVec = normalize(lightVec);
+    }
+
+    normalVec = matrixNormal * vec4(vertexNormal, 1.0);
+    halfVec   = normalize(lightVec + vec3(0,0,1));
+    texCoord0 = vertexTexCoord0;
+}
+</script>
+
+    <!-- fragment shader -->
+    <script id="frag-simple" type="x-shader/x-fragment">
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+#else
+    precision mediump float;
+#endif
+
+uniform bool lightEnabled;
+uniform vec4 lightColor;
+uniform vec3 lightAttenuations;
+uniform vec4 materialSpecular;
+uniform float materialShininess;
+uniform bool textureEnabled;
+uniform sampler2D map0;
+
+varying vec4 ambient;
+varying vec4 diffuse;
+varying vec4 normalVec;
+varying vec3 lightVec;
+varying vec3 halfVec;
+varying float lightDistance;
+varying vec2 texCoord0;
+
+void main(void)
+{
+    if(!lightEnabled)
+    {
+        if(textureEnabled)
+            gl_FragColor = texture2D(map0, texCoord0) * diffuse;
+        else
+            gl_FragColor = diffuse;
+        return;
+    }
+
+    vec3 normal = normalize(normalVec.xyz);
+    vec3 halfv  = normalize(halfVec);
+    vec3 light  = normalize(lightVec);
+
+    float dotNL = max(dot(normal, light), 0.0);
+    float dotNH = max(dot(normal, halfv), 0.0);
+
+    vec3 color = ambient.xyz;
+    color += dotNL * diffuse.xyz;
+
+    if(textureEnabled)
+    {
+        vec4 texel = texture2D(map0, texCoord0);
+        color *= texel.rgb;
+    }
+
+    color += pow(dotNH, materialShininess) * materialSpecular.xyz * lightColor.xyz;
+    gl_FragColor = vec4(color, diffuse.a);
+}
+</script>
+
+    <script type="text/javascript">
+
+        let gl = null;
+
+        const CAMERA_DIST = 5;
+        const ANIM_DURATION = 500;
+        const IMAGE_PATH = "assets/";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            let success = initWebGL("webglView");
+            if (!success) return;
+            initHtmlElements();
+        });
+
+        function initWebGL(canvasId) {
+            try {
+
+                let canvas = document.getElementById(canvasId);
+                if (!isWebGLSupported()) {
+                    canvas.parentNode.innerHTML =
+                        "<div style='width:100%;height:100%;text-align:center;background:#fff;'>" +
+                        "This page requires a WebGL-enabled browser.</div>";
+                    log("[ERROR] Browser does not support WebGL.");
+                    return false;
+                }
+
+                gl = getContextGL(canvas);
+                if (!gl) { return false; }
+                logWebGL(gl);
+
+                gl.canvas = canvas;
+                gl.camera = new OrbitCamera(0, 0, CAMERA_DIST, 0, 0, 0);
+                log("Created an orbit camera.");
+                log(gl.camera);
+
+                initGL(gl);
+                initGLSL(gl);
+                log("WebGL is initialized.");
+
+                gl.nearPlane = 0.1;
+                gl.farPlane = 100;
+                gl.wireframeEnabled = false;
+                gl.textureEnabled = false;
+                gl.pointers = [];
+
+                gl.sphere = new Sphere(gl, 1.0, 36, 18, true);
+                printSphere();
+                log(gl.sphere);
+
+                // gl.tex0 = loadTexture(gl, IMAGE_PATH + "grid512.png", true);
+                gl.tex0 = loadTexture(gl, IMAGE_PATH + "panorama.jpg", true);
+
+                window.addEventListener("resize", handleResize, false);
+                canvas.addEventListener("click", handleClick, false);
+                canvas.addEventListener("contextmenu", handleContextMenu, false);
+                canvas.addEventListener("wheel", handleWheel, false);
+                canvas.addEventListener("pointerdown", handlePointerDown, false);
+                canvas.addEventListener("pointerup", handlePointerUp, false);
+                canvas.addEventListener("pointermove", handlePointerMove, false);
+                canvas.addEventListener("pointercancel", handlePointerCancel, false);
+                canvas.addEventListener("pointerleave", handlePointerLeave, false);
+
+                startRendering(gl);
+
+            } catch (e) {
+                log("[ERROR] " + e.message);
+                alert("[ERROR] " + e.message);
+            }
+            return true;
+        }
+
+        function frame() {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.uniformMatrix4fv(gl.program.uniform.matrixView, false, gl.matrixView.m);
+
+            gl.matrixModel.identity();
+            gl.matrixModel.rotateX(-Math.PI / 2);
+
+            gl.matrixModelView = gl.matrixView.clone().multiply(gl.matrixModel);
+            gl.uniformMatrix4fv(gl.program.uniform.matrixModelView, false, gl.matrixModelView.m);
+
+            gl.matrixNormal = gl.matrixModelView.clone().invert().transpose();
+            gl.uniformMatrix4fv(gl.program.uniform.matrixNormal, false, gl.matrixNormal.m);
+
+            gl.matrixModelViewProjection = gl.matrixProjection.clone().multiply(gl.matrixModelView);
+            gl.uniformMatrix4fv(gl.program.uniform.matrixModelViewProjection, false, gl.matrixModelViewProjection.m);
+
+            if (gl.textureEnabled) {
+                gl.bindTexture(gl.TEXTURE_2D, gl.tex0);
+                gl.uniform1i(gl.program.uniform.textureEnabled, 1);
+            }
+            else {
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                gl.uniform1i(gl.program.uniform.textureEnabled, 0);
+            }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, gl.sphere.vboVertex);
+            gl.vertexAttribPointer(gl.program.attribute.position, 3, gl.FLOAT, false, gl.sphere.stride, 0);
+            gl.vertexAttribPointer(gl.program.attribute.normal, 3, gl.FLOAT, false, gl.sphere.stride, 12);
+            gl.vertexAttribPointer(gl.program.attribute.texCoord0, 2, gl.FLOAT, false, gl.sphere.stride, 24);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.sphere.vboIndex);
+            gl.uniform4fv(gl.program.uniform.lightColor, gl.light.getColor());
+            gl.drawElements(gl.TRIANGLES, gl.sphere.getIndexCount(), gl.UNSIGNED_SHORT, 0);
+
+            if (gl.wireframeEnabled) {
+                gl.uniform4fv(gl.program.uniform.lightColor, new Float32Array([0, 0, 0, 1]));
+                gl.drawElements(gl.LINE_STRIP, gl.sphere.getIndexCount(), gl.UNSIGNED_SHORT, 0);
+            }
+        }
+
+        function postFrame() { }
+
+        function handleResize() {
+            gl.canvas.width = gl.canvas.parentNode.clientWidth;
+            gl.canvas.height = gl.canvas.parentNode.clientHeight;
+            gl.screenWidth = gl.canvas.width;
+            gl.screenHeight = gl.canvas.height;
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.matrixProjection = Matrix4.makePerspective(45,
+                gl.screenWidth / gl.screenHeight, 0.1, 1000);
+            log("Window is resized: " + gl.screenWidth + " x " + gl.screenHeight);
+        }
+
+        function handleClick(e) { }
+        function handleContextMenu(e) { e.preventDefault(); }
+
+        function handleWheel(e) {
+            const ZOOM_SCALE = 0.1;
+            if (e.deltaY != 0) {
+                let deltaDistance = (e.deltaY > 0) ? ZOOM_SCALE : -ZOOM_SCALE;
+                if ((gl.camera.distance - deltaDistance) < gl.nearPlane)
+                    deltaDistance = gl.camera.distance - gl.nearPlane;
+                else if ((gl.camera.distance - deltaDistance) > gl.farPlane)
+                    deltaDistance = gl.camera.distance - gl.farPlane;
+                gl.camera.moveForward(deltaDistance);
+            }
+            e.preventDefault();
+        }
+
+        function handlePointerDown(pe) {
+            pe.preventDefault();
+            let offset = getElementOffset(this);
+            gl.pointers.push(copyPointer(pe, offset));
+
+            if (gl.pointers.length == 1) {
+                gl.camera.pointerAngle = gl.camera.angle.clone();
+                gl.pointers.downs = [];
+                gl.pointers.downs.push(copyPointer(pe, offset));
+                gl.pointers[0].button = pe.button;
+            }
+            else if (gl.pointers.length == 2) {
+                gl.pointers.downs.push(copyPointer(pe, offset));
+            }
+        }
+
+        function handlePointerUp(pe) {
+            pe.preventDefault();
+            let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
+            if (index >= 0) {
+                gl.pointers.splice(index, 1);
+                gl.pointers.distance = 0;
+            }
+        }
+
+        function handlePointerMove(pe) {
+            pe.preventDefault();
+            let offset = getElementOffset(this);
+            let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
+            if (index == 0) {
+                gl.pointers[0].delta = new Vector2(
+                    (pe.pageX - offset.x) - gl.pointers[0].x,
+                    (pe.pageY - offset.y) - gl.pointers[0].y);
+                gl.pointers[0].x = pe.pageX - offset.x;
+                gl.pointers[0].y = pe.pageY - offset.y;
+            }
+            else if (index == 1) {
+                gl.pointers[1].delta = new Vector2(
+                    (pe.pageX - offset.x) - gl.pointers[1].x,
+                    (pe.pageY - offset.y) - gl.pointers[1].y);
+                gl.pointers[1].x = pe.pageX - offset.x;
+                gl.pointers[1].y = pe.pageY - offset.y;
+            }
+
+            if (gl.pointers.length == 2) {
+                const SCALE_ZOOM = 0.01;
+                let v = new Vector2(gl.pointers[1].x - gl.pointers[0].x,
+                    gl.pointers[1].y - gl.pointers[0].y);
+                let dist = v.length();
+                let deltaDistance = 0;
+                if (gl.pointers.distance > 0)
+                    deltaDistance = dist - gl.pointers.distance;
+                gl.pointers.distance = dist;
+                gl.camera.moveForward(deltaDistance * SCALE_ZOOM);
+            }
+            else if (gl.pointers.length == 1) {
+                const SCALE_ROTATE = 0.2;
+                const SCALE_SHIFT = 0.05;
+
+                if (pe.pointerType == "mouse" && gl.pointers[0].button == 2) {
+                    let delta = gl.pointers[0].delta.normalize();
+                    delta = delta.scale(SCALE_SHIFT);
+                    gl.camera.shift(delta);
+                }
+                else {
+                    let angle = new Vector3();
+                    angle.x = gl.camera.pointerAngle.x + (gl.pointers[0].y - gl.pointers.downs[0].y) * SCALE_ROTATE;
+                    angle.y = gl.camera.pointerAngle.y - (gl.pointers[0].x - gl.pointers.downs[0].x) * SCALE_ROTATE;
+                    gl.camera.rotateTo(angle);
+                }
+            }
+        }
+
+        function handlePointerCancel(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
+        function handlePointerLeave(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
+
+        function copyPointer(pe, offset = { x: 0, y: 0 }) {
+            return { id: pe.pointerId, x: pe.clientX - offset.x, y: pe.clientY - offset.y };
+        }
+
+        function initGL(gl) {
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clearDepth(1.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
+
+            gl.light = new Light(0, 0, 1, 1);
+            gl.light.color.set(1.0, 1.0, 1.0, 1.0);
+            gl.light.attenuations.set(1, 0.5, 0);
+            log("    Light Position: " + gl.light.position);
+            log("       Light Color: " + gl.light.color);
+            log("Light Attenuations: " + gl.light.attenuations);
+            log();
+
+            gl.material = new Material(0.7, 0.7, 0.7, 1.0);
+            gl.material.ambient.set(0.2, 0.2, 0.2, 1.0);
+            gl.material.specular.set(0.2, 0.2, 0.2, 1);
+            gl.material.shininess = 128;
+            log("  Material Ambient: " + gl.material.ambient);
+            log("  Material Diffuse: " + gl.material.diffuse);
+            log(" Material Specular: " + gl.material.specular);
+            log("Material Shininess: " + gl.material.shininess);
+            log();
+
+            handleResize();
+            gl.matrixModel = new Matrix4();
+            gl.matrixView = gl.camera.matrix;
+            gl.matrixModelView = gl.matrixView.clone().multiply(gl.matrixModel);
+            gl.matrixModelViewProjection = gl.matrixProjection.clone().multiply(gl.matrixModelView);
+        }
+
+        function initGLSL(gl) {
+            let vertexShader = loadShaderById(gl, "vert-simple");
+            let fragmentShader = loadShaderById(gl, "frag-simple");
+            if (!vertexShader || !fragmentShader) return;
+
+            gl.program = gl.createProgram();
+            gl.attachShader(gl.program, vertexShader);
+            gl.attachShader(gl.program, fragmentShader);
+            gl.deleteShader(vertexShader);
+            gl.deleteShader(fragmentShader);
+            gl.linkProgram(gl.program);
+            if (!gl.getProgramParameter(gl.program, gl.LINK_STATUS)) {
+                alert("[ERROR] Failed to initialize GLSL: " + gl.getProgramInfoLog(gl.program));
+                log("[ERROR] Failed to initialize GLSL: " + gl.getProgramInfoLog(gl.program));
+            }
+
+            gl.useProgram(gl.program);
+
+            gl.program.attribute = {};
+            gl.program.attribute.position = gl.getAttribLocation(gl.program, "vertexPosition");
+            gl.program.attribute.normal = gl.getAttribLocation(gl.program, "vertexNormal");
+            gl.program.attribute.texCoord0 = gl.getAttribLocation(gl.program, "vertexTexCoord0");
+            gl.enableVertexAttribArray(gl.program.attribute.position);
+            gl.enableVertexAttribArray(gl.program.attribute.normal);
+            gl.enableVertexAttribArray(gl.program.attribute.texCoord0);
+
+            gl.program.uniform = {};
+            gl.program.uniform.matrixModelView = gl.getUniformLocation(gl.program, "matrixModelView");
+            gl.program.uniform.matrixView = gl.getUniformLocation(gl.program, "matrixView");
+            gl.program.uniform.matrixNormal = gl.getUniformLocation(gl.program, "matrixNormal");
+            gl.program.uniform.matrixModelViewProjection = gl.getUniformLocation(gl.program, "matrixModelViewProjection");
+            gl.program.uniform.lightEnabled = gl.getUniformLocation(gl.program, "lightEnabled");
+            gl.program.uniform.lightPosition = gl.getUniformLocation(gl.program, "lightPosition");
+            gl.program.uniform.lightColor = gl.getUniformLocation(gl.program, "lightColor");
+            gl.program.uniform.lightAttenuations = gl.getUniformLocation(gl.program, "lightAttenuations");
+            gl.program.uniform.materialAmbient = gl.getUniformLocation(gl.program, "materialAmbient");
+            gl.program.uniform.materialDiffuse = gl.getUniformLocation(gl.program, "materialDiffuse");
+            gl.program.uniform.materialSpecular = gl.getUniformLocation(gl.program, "materialSpecular");
+            gl.program.uniform.materialShininess = gl.getUniformLocation(gl.program, "materialShininess");
+            gl.program.uniform.textureEnabled = gl.getUniformLocation(gl.program, "textureEnabled");
+            gl.program.uniform.map0 = gl.getUniformLocation(gl.program, "map0");
+
+            gl.uniform1i(gl.program.uniform.lightEnabled, 1);
+            gl.uniform4fv(gl.program.uniform.lightPosition, gl.light.getPosition());
+            gl.uniform4fv(gl.program.uniform.lightColor, gl.light.getColor());
+            gl.uniform3fv(gl.program.uniform.lightAttenuations, gl.light.getAttenuations());
+            gl.uniform4fv(gl.program.uniform.materialAmbient, gl.material.getAmbient());
+            gl.uniform4fv(gl.program.uniform.materialDiffuse, gl.material.getDiffuse());
+            gl.uniform4fv(gl.program.uniform.materialSpecular, gl.material.getSpecular());
+            gl.uniform1f(gl.program.uniform.materialShininess, gl.material.shininess);
+            gl.uniform1i(gl.program.uniform.textureEnabled, 0);
+            gl.uniform1i(gl.program.uniform.map0, 0);
+        }
+
+        function resetCamera() {
+            let deltaDistance = gl.camera.distance - CAMERA_DIST;
+            gl.camera.moveForward(deltaDistance, ANIM_DURATION);
+            gl.camera.shiftTo(new Vector3(0, 0, 0), ANIM_DURATION);
+            gl.camera.rotateTo(new Vector3(0, 0, 0), ANIM_DURATION);
+        }
+
+        function logWebGL(gl) {
+            log("===== WebGL Info =====");
+            log("   Version: " + gl.getParameter(gl.VERSION));
+            log("  GLSL Ver: " + gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+            log("    Vendor: " + gl.getParameter(gl.VENDOR));
+            log("  Renderer: " + gl.getParameter(gl.RENDERER));
+            log("     Color: (" + gl.getParameter(gl.RED_BITS) + ", " + gl.getParameter(gl.GREEN_BITS)
+                + ", " + gl.getParameter(gl.BLUE_BITS) + ", " + gl.getParameter(gl.ALPHA_BITS) + ") bits");
+            log("     Depth: " + gl.getParameter(gl.DEPTH_BITS) + " bits");
+            log("   Stencil: " + gl.getParameter(gl.STENCIL_BITS) + " bits");
+            log();
+        }
+
+        function startRendering(gl) {
+            log("\nStarting rendering loop...\n");
+            let requestAnimationFrame = getRequestAnimationFrameFunction(window);
+            let timer = new Timer();
+            gl.fps = new FrameRate("fps");
+
+            let frameCallback = function () {
+                gl.fps.tick();
+                gl.frameTime = timer.getFrameTime();
+                gl.runTime += gl.frameTime;
+                frame();
+                postFrame();
+                requestAnimationFrame(frameCallback);
+            };
+
+            timer.start();
+            gl.runTime = 0;
+            requestAnimationFrame(frameCallback);
+        }
+
+        function initHtmlElements() {
+            let checkNormal = document.getElementById("checkNormal");
+            checkNormal.checked = false;
+            checkNormal.addEventListener("click", e => { gl.sphere.reverseNormals(); });
+
+            let rangeRadius = document.getElementById("rangeRadius");
+            let labelRadius = document.getElementById("labelRadius");
+            rangeRadius.value = 1;
+            rangeRadius.addEventListener("input", e => {
+                labelRadius.innerHTML = rangeRadius.value;
+                gl.sphere.setRadius(parseFloat(rangeRadius.value));
+                if (checkNormal.checked) gl.sphere.reverseNormals();
+                printSphere();
+            });
+
+            let rangeSector = document.getElementById("rangeSector");
+            let labelSector = document.getElementById("labelSector");
+            rangeSector.value = 36;
+            rangeSector.addEventListener("input", e => {
+                labelSector.innerHTML = rangeSector.value;
+                gl.sphere.setSectorCount(parseFloat(rangeSector.value));
+                if (checkNormal.checked) gl.sphere.reverseNormals();
+                printSphere();
+            });
+
+            let rangeStack = document.getElementById("rangeStack");
+            let labelStack = document.getElementById("labelStack");
+            rangeStack.value = 18;
+            rangeStack.addEventListener("input", e => {
+                labelStack.innerHTML = rangeStack.value;
+                gl.sphere.setStackCount(parseFloat(rangeStack.value));
+                if (checkNormal.checked) gl.sphere.reverseNormals();
+                printSphere();
+            });
+
+            let checkTexture = document.getElementById("checkTexture");
+            checkTexture.checked = false;
+            checkTexture.addEventListener("click", e => { gl.textureEnabled = checkTexture.checked; });
+
+            let checkWireframe = document.getElementById("checkWireframe");
+            checkWireframe.checked = false;
+            checkWireframe.addEventListener("click", e => { gl.wireframeEnabled = checkWireframe.checked; });
+
+            let checkSmooth = document.getElementById("checkSmooth");
+            checkSmooth.checked = true;
+            checkSmooth.addEventListener("click", e => {
+                gl.sphere.setSmooth(checkSmooth.checked);
+                if (checkNormal.checked) gl.sphere.reverseNormals();
+                printSphere();
+            });
+
+            let buttonReset = document.getElementById("buttonReset");
+            buttonReset.addEventListener("click", e => {
+                gl.sphere.set(1, 36, 18, true);
+                rangeRadius.value = 1; labelRadius.innerHTML = 1;
+                rangeSector.value = 36; labelSector.innerHTML = 36;
+                rangeStack.value = 18; labelStack.innerHTML = 18;
+                checkTexture.checked = false;
+                checkWireframe.checked = false;
+                checkSmooth.checked = true;
+                checkNormal.checked = false;
+                gl.textureEnabled = false;
+                gl.wireframeEnabled = false;
+                printSphere();
+                resetCamera();
+            });
+        }
+
+        function printSphere() {
+            let info = document.getElementById("info");
+            if (info) info.innerHTML = gl.sphere.toString();
+        }
+
+    </script>
+</head>
+
+<body>
+
+    <div class="contentblock">
+
+        <div class="mainblock">
+            <canvas id="webglView" width="300" height="300"></canvas>
+            <pre id="info"></pre>
+        </div>
+
+        <div class="rightblock">
+            <h2>Sphere</h2>
+
+            <div>
+                <span>Radius</span><br>
+                <div style="display:flex;align-items:center;">
+                    <input id="rangeRadius" class="slider" type="range" min="0" max="5" step="0.1" value="1"
+                        style="flex:1;">
+                    <label id="labelRadius" style="flex:0 0 2em;margin-left:5px;">1</label>
+                </div>
+            </div>
+
+            <div>
+                <span>Sector Count</span><br>
+                <div style="display:flex;align-items:center;">
+                    <input id="rangeSector" class="slider" type="range" min="2" max="100" step="1" value="36"
+                        style="flex:1;">
+                    <label id="labelSector" style="flex:0 0 2em;margin-left:5px;">36</label>
+                </div>
+            </div>
+
+            <div>
+                <span>Stack Count</span><br>
+                <div style="display:flex;align-items:center;">
+                    <input id="rangeStack" class="slider" type="range" min="2" max="100" step="1" value="18"
+                        style="flex:1;">
+                    <label id="labelStack" style="flex:0 0 2em;margin-left:5px;">18</label>
+                </div>
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <label><input style="margin-bottom:20px;" type="checkbox" id="checkTexture"> Show Texture</label><br>
+                <label><input style="margin-bottom:20px;" type="checkbox" id="checkWireframe"> Show
+                    Wireframe</label><br>
+                <label><input style="margin-bottom:20px;" type="checkbox" id="checkSmooth"> Smooth Shading</label><br>
+                <label><input style="margin-bottom:20px;" type="checkbox" id="checkNormal"> Reverse Normals</label>
+            </div>
+
+            <button type="reset" id="buttonReset">Reset</button>
+
+            <div id="fps" style="margin-top:8px;font-size:0.85em;color:#666;"></div>
+            <div id="log" style="font-size:0.7em;line-height:130%;white-space:pre-wrap;word-break:break-all;
+         border-top:1px solid #ddd;margin-top:10px;padding-top:5px;color:#888;
+         max-height:200px;overflow:auto;"></div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
