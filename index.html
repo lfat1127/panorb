@@ -146,6 +146,7 @@ uniform mat4 matrixView;
 uniform mat4 matrixModelView;
 uniform mat4 matrixModelViewProjection;
 uniform bool lightEnabled;
+uniform bool mirrorU;
 uniform vec4 lightPosition;
 uniform vec4 lightColor;
 uniform vec3 lightAttenuations;
@@ -165,7 +166,7 @@ varying vec2 texCoord0;
 void main(void)
 {
     gl_Position = matrixModelViewProjection * vec4(vertexPosition, 1);
-    texCoord0 = vertexTexCoord0;
+    texCoord0 = vec2(mirrorU ? 1.0 - vertexTexCoord0.x : vertexTexCoord0.x, vertexTexCoord0.y);
 
     if(!lightEnabled)
     {
@@ -301,6 +302,7 @@ void main(void)
                 gl.textureEnabled = true;
                 gl.pointers = [];
 
+                gl.reverseNormalsEnabled = true;
                 gl.sphere = new Sphere(gl, initialRadius, 100, 100, true);
                 gl.sphere.reverseNormals();
                 printSphere();
@@ -344,6 +346,8 @@ void main(void)
 
             gl.matrixModelViewProjection = gl.matrixProjection.clone().multiply(gl.matrixModelView);
             gl.uniformMatrix4fv(gl.program.uniform.matrixModelViewProjection, false, gl.matrixModelViewProjection.m);
+
+            gl.uniform1i(gl.program.uniform.mirrorU, gl.reverseNormalsEnabled ? 1 : 0);
 
             if (gl.textureEnabled) {
                 gl.bindTexture(gl.TEXTURE_2D, gl.tex0);
@@ -574,6 +578,7 @@ void main(void)
             gl.program.uniform.materialShininess = gl.getUniformLocation(gl.program, "materialShininess");
             gl.program.uniform.textureEnabled = gl.getUniformLocation(gl.program, "textureEnabled");
             gl.program.uniform.map0 = gl.getUniformLocation(gl.program, "map0");
+            gl.program.uniform.mirrorU = gl.getUniformLocation(gl.program, "mirrorU");
 
             gl.uniform1i(gl.program.uniform.lightEnabled, 1);
             gl.uniform4fv(gl.program.uniform.lightPosition, gl.light.getPosition());
@@ -640,7 +645,10 @@ void main(void)
 
             let checkNormal = document.getElementById("checkNormal");
             checkNormal.checked = true;
-            checkNormal.addEventListener("click", e => { gl.sphere.reverseNormals(); });
+            checkNormal.addEventListener("click", e => {
+                gl.reverseNormalsEnabled = checkNormal.checked;
+                gl.sphere.reverseNormals();
+            });
 
             let rangeRadius = document.getElementById("rangeRadius");
             let labelRadius = document.getElementById("labelRadius");
@@ -725,6 +733,7 @@ void main(void)
                 checkWireframe.checked = false;
                 checkSmooth.checked = true;
                 checkNormal.checked = true;
+                gl.reverseNormalsEnabled = true;
                 gl.sphere.reverseNormals();
                 syncFovToDistance(CAMERA_DIST);
                 gl.textureEnabled = true;

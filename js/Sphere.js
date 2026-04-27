@@ -19,10 +19,9 @@
 // UPDATED: 2024-07-19
 ///////////////////////////////////////////////////////////////////////////////
 
-let Sphere = function(gl, radius=1, sectors=36, stacks=18, smooth=true)
-{
+let Sphere = function (gl, radius = 1, sectors = 36, stacks = 18, smooth = true) {
     this.gl = gl;
-    if(!gl)
+    if (!gl)
         log("[WARNING] Sphere.contructor requires GL context as a param.");
 
     this.radius = 1;
@@ -35,8 +34,7 @@ let Sphere = function(gl, radius=1, sectors=36, stacks=18, smooth=true)
     this.indices = [];
     this.interleavedVertices = [];
     this.stride = 32;   // stride for interleaved vertices, always=32
-    if(gl)
-    {
+    if (gl) {
         this.vboVertex = gl.createBuffer();
         this.vboIndex = gl.createBuffer();
     }
@@ -46,122 +44,105 @@ let Sphere = function(gl, radius=1, sectors=36, stacks=18, smooth=true)
 
 Sphere.prototype =
 {
-    set: function(r, se, st, sm)
-    {
+    set: function (r, se, st, sm) {
         this.radius = r;
         this.sectorCount = se;
-        if(se < 2)
+        if (se < 2)
             this.sectorCount = 2;
         this.stackCount = st;
-        if(st < 2)
+        if (st < 2)
             this.stackCount = 2;
         this.smooth = sm;
-        if(sm)
+        if (sm)
             this.buildVerticesSmooth();
         else
             this.buildVerticesFlat();
         return this;
     },
-    setRadius: function(r)
-    {
-        if(this.radius != r)
+    setRadius: function (r) {
+        if (this.radius != r)
             this.set(r, this.sectorCount, this.stackCount, this.smooth);
         return this;
     },
-    setSectorCount: function(s)
-    {
-        if(this.sectorCount != s)
+    setSectorCount: function (s) {
+        if (this.sectorCount != s)
             this.set(this.radius, s, this.stackCount, this.smooth);
         return this;
     },
-    setStackCount: function(s)
-    {
-        if(this.stackCount != s)
+    setStackCount: function (s) {
+        if (this.stackCount != s)
             this.set(this.radius, this.sectorCount, s, this.smooth);
         return this;
     },
-    setSmooth: function(s)
-    {
-        if(this.smooth != s)
-        {
+    setSmooth: function (s) {
+        if (this.smooth != s) {
             this.smooth = s;
-            if(this.smooth)
+            if (this.smooth)
                 this.buildVerticesSmooth();
             else
                 this.buildVerticesFlat();
         }
         return this;
     },
-    reverseNormals: function()
-    {
+    reverseNormals: function () {
         let i, j;
         let count = this.normals.length;
-        for(i = 0, j = 3; i < count; i+=3, j+=8)
-        {
-            this.normals[i]   *= -1;
-            this.normals[i+1] *= -1;
-            this.normals[i+2] *= -1;
+        for (i = 0, j = 3; i < count; i += 3, j += 8) {
+            this.normals[i] *= -1;
+            this.normals[i + 1] *= -1;
+            this.normals[i + 2] *= -1;
 
-            this.interleavedVertices[j]   = this.normals[i];
-            this.interleavedVertices[j+1] = this.normals[i+1];
-            this.interleavedVertices[j+2] = this.normals[i+2];
+            this.interleavedVertices[j] = this.normals[i];
+            this.interleavedVertices[j + 1] = this.normals[i + 1];
+            this.interleavedVertices[j + 2] = this.normals[i + 2];
         }
 
         let tmp;
         count = this.indices.length;
-        for(i = 0; i < count; i+=3)
-        {
+        for (i = 0; i < count; i += 3) {
             tmp = this.indices[i];
-            this.indices[i]   = this.indices[i+2];
-            this.indices[i+2] = tmp;
+            this.indices[i] = this.indices[i + 2];
+            this.indices[i + 2] = tmp;
         }
 
         this.buildVbos();
     },
-    getTriangleCount: function()
-    {
+    getTriangleCount: function () {
         return this.getIndexCount() / 3;
     },
-    getIndexCount: function()
-    {
+    getIndexCount: function () {
         return this.indices.length;
     },
-    getVertexCount: function()
-    {
+    getVertexCount: function () {
         return this.vertices.length / 3;
     },
-    getNormalCount: function()
-    {
+    getNormalCount: function () {
         return this.normals.length / 3;
     },
-    getTexCoordCount: function()
-    {
+    getTexCoordCount: function () {
         return this.texCoords.length / 2;
     },
-    toString: function()
-    {
+    toString: function () {
         return "===== Sphere =====\n" +
-               "        Radius: " + this.radius + "\n" +
-               "  Sector Count: " + this.sectorCount + "\n" +
-               "   Stack Count: " + this.stackCount + "\n" +
-               " Smooth Shader: " + this.smooth + "\n" +
-               "Triangle Count: " + this.getTriangleCount() + "\n" +
-               "   Index Count: " + this.getIndexCount() + "\n" +
-               "  Vertex Count: " + this.getVertexCount() + "\n" +
-               "  Normal Count: " + this.getNormalCount() + "\n" +
-               "TexCoord Count: " + this.getTexCoordCount() + "\n";
+            "        Radius: " + this.radius + "\n" +
+            "  Sector Count: " + this.sectorCount + "\n" +
+            "   Stack Count: " + this.stackCount + "\n" +
+            " Smooth Shader: " + this.smooth + "\n" +
+            "Triangle Count: " + this.getTriangleCount() + "\n" +
+            "   Index Count: " + this.getIndexCount() + "\n" +
+            "  Vertex Count: " + this.getVertexCount() + "\n" +
+            "  Normal Count: " + this.getNormalCount() + "\n" +
+            "TexCoord Count: " + this.getTexCoordCount() + "\n";
     },
 
-    clearArrays: function()
-    {
+    clearArrays: function () {
         this.vertices.length = 0;
         this.normals.length = 0;
         this.texCoords.length = 0;
         this.indices.length = 0;
         this.interleavedVertices.length = 0;
     },
-    resizeArraysSmooth: function()
-    {
+    resizeArraysSmooth: function () {
         this.clearArrays();
         let count = (this.sectorCount + 1) * (this.stackCount + 1);
         this.vertices = new Float32Array(3 * count);
@@ -170,8 +151,7 @@ Sphere.prototype =
         //this.indices = new Uint16Array(6 * this.sectorCount + 6 * (this.stackCount - 2) * this.sectorCount);
         this.indices = new Uint16Array(6 * this.sectorCount * (this.stackCount - 1));
     },
-    resizeArraysFlat: function()
-    {
+    resizeArraysFlat: function () {
         this.clearArrays();
         let count = 6 * this.sectorCount + 4 * this.sectorCount * (this.stackCount - 2);
         this.vertices = new Float32Array(3 * count);
@@ -189,8 +169,7 @@ Sphere.prototype =
     // where u: stack(latitude) angle (-90 <= u <= 90)
     //       v: sector(longitude) angle (0 <= v <= 360)
     ///////////////////////////////////////////////////////////////////////////
-    buildVerticesSmooth: function()
-    {
+    buildVerticesSmooth: function () {
         // resize typed arrays
         this.resizeArraysSmooth();
 
@@ -201,16 +180,14 @@ Sphere.prototype =
         let sectorAngle, stackAngle;
 
         ii = jj = kk = 0;
-        for(i=0; i <= this.stackCount; ++i)
-        {
+        for (i = 0; i <= this.stackCount; ++i) {
             stackAngle = Math.PI / 2 - i * stackStep;   // starting from pi/2 to -pi/2
             xy = this.radius * Math.cos(stackAngle);    // r * cos(u)
             z = this.radius * Math.sin(stackAngle);     // r * sin(u)
 
             // add (sectorCount+1) vertices per stack
             // the first and last vertices have same position and normal, but different tex coords
-            for(j=0; j <= this.sectorCount; ++j)
-            {
+            for (j = 0; j <= this.sectorCount; ++j) {
                 sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
                 // vertex position
@@ -240,23 +217,19 @@ Sphere.prototype =
         //  |  / |
         //  | /  |
         //  k2--k2+1
-        for(i=0; i < this.stackCount; ++i)
-        {
+        for (i = 0; i < this.stackCount; ++i) {
             k1 = i * (this.sectorCount + 1);            // beginning of current stack
             k2 = k1 + this.sectorCount + 1;             // beginning of next stack
 
-            for(j=0; j < this.sectorCount; ++j, ++k1, ++k2)
-            {
+            for (j = 0; j < this.sectorCount; ++j, ++k1, ++k2) {
                 // 2 triangles per sector excluding 1st and last stacks
-                if(i != 0)
-                {
-                    this.addIndices(kk, k1, k2, k1+1);  // k1---k2---k1+1
+                if (i != 0) {
+                    this.addIndices(kk, k1, k2, k1 + 1);  // k1---k2---k1+1
                     kk += 3;
                 }
 
-                if(i != (this.stackCount-1))
-                {
-                    this.addIndices(kk, k1+1, k2, k2+1);// k1+1---k2---k2+1
+                if (i != (this.stackCount - 1)) {
+                    this.addIndices(kk, k1 + 1, k2, k2 + 1);// k1+1---k2---k2+1
                     kk += 3;
                 }
             }
@@ -270,8 +243,7 @@ Sphere.prototype =
     ///////////////////////////////////////////////////////////////////////////
     // generate vertices of sphere with flat shading
     ///////////////////////////////////////////////////////////////////////////
-    buildVerticesFlat: function()
-    {
+    buildVerticesFlat: function () {
         let i, j, k, x, y, z, s, t, n, xy, v1, v2, v3, v4, vi1, vi2, index, ii, jj, kk;
         let sectorStep = 2 * Math.PI / this.sectorCount;
         let stackStep = Math.PI / this.stackCount;
@@ -280,22 +252,22 @@ Sphere.prototype =
         let vertex = {};    // to store (x,y,z,s,t)
 
         // compute all vertices first, each vertex contains (x,y,z,s,t) except normal
-        for(i = 0; i <= this.stackCount; ++i)
-        {
+        for (i = 0; i <= this.stackCount; ++i) {
             stackAngle = Math.PI / 2 - i * stackStep;       // starting from pi/2 to -pi/2
             xy = this.radius * Math.cos(stackAngle);        // r * cos(u)
             z = this.radius * Math.sin(stackAngle);         // r * sin(u)
 
             // add (sectorCount+1) vertices per stack
             // the first and last vertices have same position and normal, but different tex coords
-            for(j = 0; j <= this.sectorCount; ++j)
-            {
+            for (j = 0; j <= this.sectorCount; ++j) {
                 sectorAngle = j * sectorStep;               // starting from 0 to 2pi
-                vertex = {x: xy * Math.cos(sectorAngle),    // x = r * cos(u) * cos(v)
-                          y: xy * Math.sin(sectorAngle),    // y = r * cos(u) * sin(v)
-                          z: z,                             // z = r * sin(u)
-                          s: j / this.sectorCount,
-                          t: i / this.stackCount};
+                vertex = {
+                    x: xy * Math.cos(sectorAngle),    // x = r * cos(u) * cos(v)
+                    y: xy * Math.sin(sectorAngle),    // y = r * cos(u) * sin(v)
+                    z: z,                             // z = r * sin(u)
+                    s: j / this.sectorCount,
+                    t: i / this.stackCount
+                };
                 tmpVertices.push(vertex);
             }
         }
@@ -304,44 +276,42 @@ Sphere.prototype =
         this.resizeArraysFlat();
 
         ii = jj = kk = index = 0;
-        for(i = 0; i < this.stackCount; ++i)
-        {
+        for (i = 0; i < this.stackCount; ++i) {
             vi1 = i * (this.sectorCount + 1);               // index of tmpVertices
-            vi2 = (i+1) * (this.sectorCount + 1);
+            vi2 = (i + 1) * (this.sectorCount + 1);
 
-            for(j = 0; j < this.sectorCount; ++j, ++vi1, ++vi2)
-            {
+            for (j = 0; j < this.sectorCount; ++j, ++vi1, ++vi2) {
                 // get 4 vertices per sector
                 //  v1-v3
                 //  |  |
                 //  v2-v4
                 v1 = tmpVertices[vi1];
                 v2 = tmpVertices[vi2];
-                v3 = tmpVertices[vi1+1];
-                v4 = tmpVertices[vi2+1];
+                v3 = tmpVertices[vi1 + 1];
+                v4 = tmpVertices[vi2 + 1];
 
                 // if 1st stack and last stack, store only 1 triangle per sector
                 // otherwise, store 2 triangles (quad) per sector
-                if(i == 0) // a triangle for first stack ======================
+                if (i == 0) // a triangle for first stack ======================
                 {
                     // put a triangle
-                    this.addVertex(ii,   v1.x, v1.y, v1.z);
-                    this.addVertex(ii+3, v2.x, v2.y, v2.z);
-                    this.addVertex(ii+6, v4.x, v4.y, v4.z);
+                    this.addVertex(ii, v1.x, v1.y, v1.z);
+                    this.addVertex(ii + 3, v2.x, v2.y, v2.z);
+                    this.addVertex(ii + 6, v4.x, v4.y, v4.z);
 
                     // put tex coords of triangle
-                    this.addTexCoord(jj,   v1.s, v1.t);
-                    this.addTexCoord(jj+2, v2.s, v2.t);
-                    this.addTexCoord(jj+4, v4.s, v4.t);
+                    this.addTexCoord(jj, v1.s, v1.t);
+                    this.addTexCoord(jj + 2, v2.s, v2.t);
+                    this.addTexCoord(jj + 4, v4.s, v4.t);
 
                     // put normal
-                    n = Sphere.computeFaceNormal(v1.x,v1.y,v1.z, v2.x,v2.y,v2.z, v4.x,v4.y,v4.z);
-                    this.addNormal(ii,   n[0], n[1], n[2]);
-                    this.addNormal(ii+3, n[0], n[1], n[2]);
-                    this.addNormal(ii+6, n[0], n[1], n[2]);
+                    n = Sphere.computeFaceNormal(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v4.x, v4.y, v4.z);
+                    this.addNormal(ii, n[0], n[1], n[2]);
+                    this.addNormal(ii + 3, n[0], n[1], n[2]);
+                    this.addNormal(ii + 6, n[0], n[1], n[2]);
 
                     // put indices of 1 triangle
-                    this.addIndices(kk, index, index+1, index+2);
+                    this.addIndices(kk, index, index + 1, index + 2);
 
                     // next
                     ii += 9;
@@ -349,26 +319,26 @@ Sphere.prototype =
                     kk += 3;
                     index += 3;
                 }
-                else if(i == (this.stackCount-1)) // a triangle for last stack =====
+                else if (i == (this.stackCount - 1)) // a triangle for last stack =====
                 {
                     // put a triangle
-                    this.addVertex(ii,   v1.x, v1.y, v1.z);
-                    this.addVertex(ii+3, v2.x, v2.y, v2.z);
-                    this.addVertex(ii+6, v3.x, v3.y, v3.z);
+                    this.addVertex(ii, v1.x, v1.y, v1.z);
+                    this.addVertex(ii + 3, v2.x, v2.y, v2.z);
+                    this.addVertex(ii + 6, v3.x, v3.y, v3.z);
 
                     // put tex coords of triangle
-                    this.addTexCoord(jj,   v1.s, v1.t);
-                    this.addTexCoord(jj+2, v2.s, v2.t);
-                    this.addTexCoord(jj+4, v3.s, v3.t);
+                    this.addTexCoord(jj, v1.s, v1.t);
+                    this.addTexCoord(jj + 2, v2.s, v2.t);
+                    this.addTexCoord(jj + 4, v3.s, v3.t);
 
                     // put normal
-                    n = Sphere.computeFaceNormal(v1.x,v1.y,v1.z, v2.x,v2.y,v2.z, v3.x,v3.y,v3.z);
-                    this.addNormal(ii,   n[0], n[1], n[2]);
-                    this.addNormal(ii+3, n[0], n[1], n[2]);
-                    this.addNormal(ii+6, n[0], n[1], n[2]);
+                    n = Sphere.computeFaceNormal(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
+                    this.addNormal(ii, n[0], n[1], n[2]);
+                    this.addNormal(ii + 3, n[0], n[1], n[2]);
+                    this.addNormal(ii + 6, n[0], n[1], n[2]);
 
                     // put indices of 1 triangle
-                    this.addIndices(kk, index, index+1, index+2);
+                    this.addIndices(kk, index, index + 1, index + 2);
 
                     // next
                     ii += 9;
@@ -379,26 +349,26 @@ Sphere.prototype =
                 else // 2 triangles for others ================================
                 {
                     // put quad vertices: v1-v2-v3-v4
-                    this.addVertex(ii,   v1.x, v1.y, v1.z);
-                    this.addVertex(ii+3, v2.x, v2.y, v2.z);
-                    this.addVertex(ii+6, v3.x, v3.y, v3.z);
-                    this.addVertex(ii+9, v4.x, v4.y, v4.z);
+                    this.addVertex(ii, v1.x, v1.y, v1.z);
+                    this.addVertex(ii + 3, v2.x, v2.y, v2.z);
+                    this.addVertex(ii + 6, v3.x, v3.y, v3.z);
+                    this.addVertex(ii + 9, v4.x, v4.y, v4.z);
 
                     // put tex coords of quad
-                    this.addTexCoord(jj,   v1.s, v1.t);
-                    this.addTexCoord(jj+2, v2.s, v2.t);
-                    this.addTexCoord(jj+4, v3.s, v3.t);
-                    this.addTexCoord(jj+6, v4.s, v4.t);
+                    this.addTexCoord(jj, v1.s, v1.t);
+                    this.addTexCoord(jj + 2, v2.s, v2.t);
+                    this.addTexCoord(jj + 4, v3.s, v3.t);
+                    this.addTexCoord(jj + 6, v4.s, v4.t);
 
                     // put normal
-                    n = Sphere.computeFaceNormal(v1.x,v1.y,v1.z, v2.x,v2.y,v2.z, v3.x,v3.y,v3.z);
-                    this.addNormal(ii,   n[0], n[1], n[2]);
-                    this.addNormal(ii+3, n[0], n[1], n[2]);
-                    this.addNormal(ii+6, n[0], n[1], n[2]);
+                    n = Sphere.computeFaceNormal(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
+                    this.addNormal(ii, n[0], n[1], n[2]);
+                    this.addNormal(ii + 3, n[0], n[1], n[2]);
+                    this.addNormal(ii + 6, n[0], n[1], n[2]);
 
                     // put indices of quad (2 triangles)
-                    this.addIndices(kk,   index, index+1, index+2);
-                    this.addIndices(kk+3, index+2, index+1, index+3);
+                    this.addIndices(kk, index, index + 1, index + 2);
+                    this.addIndices(kk + 3, index + 2, index + 1, index + 3);
 
                     // next
                     ii += 12;
@@ -418,33 +388,30 @@ Sphere.prototype =
     // generate interleaved vertices: V/N/T
     // stride must be 32 bytes
     ///////////////////////////////////////////////////////////////////////////
-    buildInterleavedVertices: function()
-    {
+    buildInterleavedVertices: function () {
         let vertexCount = this.getVertexCount();
         this.interleavedVertices.length = 0;
         this.interleavedVertices = new Float32Array(vertexCount * 8); // v(3)+n(3)+t(2)
 
         let i, j, k;
-        for(i=0, j=0, k=0; i < this.vertices.length; i+=3, j+=2, k+=8)
-        {
-            this.interleavedVertices[k]   = this.vertices[i];
-            this.interleavedVertices[k+1] = this.vertices[i+1];
-            this.interleavedVertices[k+2] = this.vertices[i+2];
+        for (i = 0, j = 0, k = 0; i < this.vertices.length; i += 3, j += 2, k += 8) {
+            this.interleavedVertices[k] = this.vertices[i];
+            this.interleavedVertices[k + 1] = this.vertices[i + 1];
+            this.interleavedVertices[k + 2] = this.vertices[i + 2];
 
-            this.interleavedVertices[k+3] = this.normals[i];
-            this.interleavedVertices[k+4] = this.normals[i+1];
-            this.interleavedVertices[k+5] = this.normals[i+2];
+            this.interleavedVertices[k + 3] = this.normals[i];
+            this.interleavedVertices[k + 4] = this.normals[i + 1];
+            this.interleavedVertices[k + 5] = this.normals[i + 2];
 
-            this.interleavedVertices[k+6] = this.texCoords[j];
-            this.interleavedVertices[k+7] = this.texCoords[j+1];
+            this.interleavedVertices[k + 6] = this.texCoords[j];
+            this.interleavedVertices[k + 7] = this.texCoords[j + 1];
         }
     },
 
     ///////////////////////////////////////////////////////////////////////////
     // copy interleaved vertex data to VBOs
     ///////////////////////////////////////////////////////////////////////////
-    buildVbos: function()
-    {
+    buildVbos: function () {
         let gl = this.gl;
         // copy vertices/normals/texcoords to VBO
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vboVertex);
@@ -461,28 +428,24 @@ Sphere.prototype =
     ///////////////////////////////////////////////////////////////////////////
     // add vertex, normal, texcoord and indices
     ///////////////////////////////////////////////////////////////////////////
-    addVertex: function(index, x, y, z)
-    {
-        this.vertices[index]   = x;
-        this.vertices[index+1] = y;
-        this.vertices[index+2] = z;
+    addVertex: function (index, x, y, z) {
+        this.vertices[index] = x;
+        this.vertices[index + 1] = y;
+        this.vertices[index + 2] = z;
     },
-    addNormal: function(index, x, y, z)
-    {
-        this.normals[index]   = x;
-        this.normals[index+1] = y;
-        this.normals[index+2] = z;
+    addNormal: function (index, x, y, z) {
+        this.normals[index] = x;
+        this.normals[index + 1] = y;
+        this.normals[index + 2] = z;
     },
-    addTexCoord: function(index, s, t)
-    {
-        this.texCoords[index]   = s;
-        this.texCoords[index+1] = t;
+    addTexCoord: function (index, s, t) {
+        this.texCoords[index] = s;
+        this.texCoords[index + 1] = t;
     },
-    addIndices: function(index, i1, i2, i3)
-    {
-        this.indices[index]   = i1;
-        this.indices[index+1] = i2;
-        this.indices[index+2] = i3;
+    addIndices: function (index, i1, i2, i3) {
+        this.indices[index] = i1;
+        this.indices[index + 1] = i2;
+        this.indices[index + 2] = i3;
     }
 };
 
@@ -491,8 +454,7 @@ Sphere.prototype =
 ///////////////////////////////////////////////////////////////////////////////
 // class (static) functions
 ///////////////////////////////////////////////////////////////////////////////
-Sphere.computeFaceNormal = function(x1,y1,z1, x2,y2,z2, x3,y3,z3)
-{
+Sphere.computeFaceNormal = function (x1, y1, z1, x2, y2, z2, x3, y3, z3) {
     let normal = new Float32Array(3);
     let ex1 = x2 - x1;
     let ey1 = y2 - y1;
@@ -505,8 +467,7 @@ Sphere.computeFaceNormal = function(x1,y1,z1, x2,y2,z2, x3,y3,z3)
     let ny = ez1 * ex2 - ex1 * ez2;
     let nz = ex1 * ey2 - ey1 * ex2;
     let length = Math.sqrt(nx * nx + ny * ny + nz * nz);
-    if(length > 0.000001)
-    {
+    if (length > 0.000001) {
         normal[0] = nx / length;
         normal[1] = ny / length;
         normal[2] = nz / length;
