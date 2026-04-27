@@ -151,6 +151,7 @@ varying vec2 texCoord0;
 void main(void)
 {
     gl_Position = matrixModelViewProjection * vec4(vertexPosition, 1);
+    texCoord0 = vertexTexCoord0;
 
     if(!lightEnabled)
     {
@@ -176,7 +177,6 @@ void main(void)
 
     normalVec = matrixNormal * vec4(vertexNormal, 1.0);
     halfVec   = normalize(lightVec + vec3(0,0,1));
-    texCoord0 = vertexTexCoord0;
 }
 </script>
 
@@ -209,7 +209,7 @@ void main(void)
     if(!lightEnabled)
     {
         if(textureEnabled)
-            gl_FragColor = texture2D(map0, texCoord0) * diffuse;
+            gl_FragColor = texture2D(map0, texCoord0);
         else
             gl_FragColor = diffuse;
         return;
@@ -330,10 +330,12 @@ void main(void)
             if (gl.textureEnabled) {
                 gl.bindTexture(gl.TEXTURE_2D, gl.tex0);
                 gl.uniform1i(gl.program.uniform.textureEnabled, 1);
+                gl.uniform1i(gl.program.uniform.lightEnabled, 0);
             }
             else {
                 gl.bindTexture(gl.TEXTURE_2D, null);
                 gl.uniform1i(gl.program.uniform.textureEnabled, 0);
+                gl.uniform1i(gl.program.uniform.lightEnabled, 1);
             }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.sphere.vboVertex);
