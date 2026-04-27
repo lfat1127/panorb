@@ -311,7 +311,11 @@ void main(void)
 
                 if (!SHOW_CONTROLS_UI) {
                     let contentBlock = document.querySelector(".contentblock");
-                    if (contentBlock) contentBlock.classList.add("controls-hidden");
+                    if (contentBlock) {
+                        contentBlock.classList.add("controls-hidden");
+                        // Layout width changes when controls are hidden; update viewport/projection.
+                        requestAnimationFrame(handleResize);
+                    }
                 }
 
                 gl.reverseNormalsEnabled = true;
