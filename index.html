@@ -245,6 +245,7 @@ void main(void)
         const IMAGE_PATH = "assets/";
         const TINY_PLANET_FOV = 120;
         const TINY_PLANET_PITCH = 90;
+        const initialRadius = 2;
 
         document.addEventListener("DOMContentLoaded", () => {
             let success = initWebGL("webglView");
@@ -284,7 +285,7 @@ void main(void)
                 gl.textureEnabled = true;
                 gl.pointers = [];
 
-                gl.sphere = new Sphere(gl, 1.0, 100, 100, true);
+                gl.sphere = new Sphere(gl, initialRadius, 100, 100, true);
                 gl.sphere.reverseNormals();
                 printSphere();
                 log(gl.sphere);
@@ -596,7 +597,8 @@ void main(void)
 
             let rangeRadius = document.getElementById("rangeRadius");
             let labelRadius = document.getElementById("labelRadius");
-            rangeRadius.value = 1;
+            rangeRadius.value = initialRadius;
+            labelRadius.innerHTML = initialRadius;
             rangeRadius.addEventListener("input", e => {
                 labelRadius.innerHTML = rangeRadius.value;
                 gl.sphere.setRadius(parseFloat(rangeRadius.value));
