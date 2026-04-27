@@ -257,9 +257,11 @@ void main(void)
         const CAMERA_DIST = 1;
         const ANIM_DURATION = 500;
         const IMAGE_PATH = "assets/";
-        const TINY_PLANET_FOV = 120;
+        const TINY_PLANET_FOV = 150;
         const TINY_PLANET_PITCH = 90;
-        const initialRadius = 1;
+        const MIN_FOV = 90;
+        const MIN_DIST = 0.1;
+        const initialRadius = 1.1;
 
         document.addEventListener("DOMContentLoaded", () => {
             let success = initWebGL("webglView");
@@ -376,7 +378,8 @@ void main(void)
             gl.screenWidth = gl.canvas.width;
             gl.screenHeight = gl.canvas.height;
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-            gl.matrixProjection = Matrix4.makePerspective(TINY_PLANET_FOV,
+            gl.matrixProjection = Matrix4.makePerspective(
+                (gl.fov !== undefined ? gl.fov : TINY_PLANET_FOV),
                 gl.screenWidth / gl.screenHeight, 0.1, 1000);
             log("Window is resized: " + gl.screenWidth + " x " + gl.screenHeight);
         }
@@ -384,15 +387,31 @@ void main(void)
         function handleClick(e) { }
         function handleContextMenu(e) { e.preventDefault(); }
 
+        // Maps camera distance linearly to FOV and syncs all related UI.
+        // dist=CAMERA_DIST → FOV=TINY_PLANET_FOV (max tiny planet)
+        // dist=MIN_DIST    → FOV=MIN_FOV          (most zoomed in)
+        function syncFovToDistance(dist) {
+            const t = Math.max(0, Math.min(1, (dist - MIN_DIST) / (CAMERA_DIST - MIN_DIST)));
+            gl.fov = MIN_FOV + t * (TINY_PLANET_FOV - MIN_FOV);
+            let inputFov = document.getElementById("inputFov");
+            if (inputFov) inputFov.value = Math.round(gl.fov);
+            let rangeCameraDist = document.getElementById("rangeCameraDist");
+            let labelCameraDist = document.getElementById("labelCameraDist");
+            if (rangeCameraDist) rangeCameraDist.value = dist.toFixed(2);
+            if (labelCameraDist) labelCameraDist.innerHTML = dist.toFixed(1);
+            handleResize();
+        }
+
         function handleWheel(e) {
             const ZOOM_SCALE = 0.1;
             if (e.deltaY != 0) {
                 let deltaDistance = (e.deltaY > 0) ? ZOOM_SCALE : -ZOOM_SCALE;
-                if ((gl.camera.distance - deltaDistance) < gl.nearPlane)
-                    deltaDistance = gl.camera.distance - gl.nearPlane;
-                else if ((gl.camera.distance - deltaDistance) > gl.farPlane)
-                    deltaDistance = gl.camera.distance - gl.farPlane;
+                if ((gl.camera.distance - deltaDistance) < MIN_DIST)
+                    deltaDistance = gl.camera.distance - MIN_DIST;
+                else if ((gl.camera.distance - deltaDistance) > CAMERA_DIST)
+                    deltaDistance = gl.camera.distance - CAMERA_DIST;
                 gl.camera.moveForward(deltaDistance);
+                syncFovToDistance(gl.camera.distance);
             }
             e.preventDefault();
         }
@@ -442,15 +461,18 @@ void main(void)
             }
 
             if (gl.pointers.length == 2) {
-                const SCALE_ZOOM = 0.01;
+                const SCALE_ZOOM = 0.0001;
                 let v = new Vector2(gl.pointers[1].x - gl.pointers[0].x,
                     gl.pointers[1].y - gl.pointers[0].y);
                 let dist = v.length();
-                let deltaDistance = 0;
+                let deltaRatio = 0;
                 if (gl.pointers.distance > 0)
-                    deltaDistance = dist - gl.pointers.distance;
+                    deltaRatio = (dist - gl.pointers.distance) / gl.pointers.distance;
                 gl.pointers.distance = dist;
-                gl.camera.moveForward(deltaDistance * SCALE_ZOOM);
+                let newDist = gl.camera.distance - deltaRatio * (CAMERA_DIST - MIN_DIST) * SCALE_ZOOM;
+                newDist = Math.max(MIN_DIST, Math.min(CAMERA_DIST, newDist));
+                gl.camera.moveForward(gl.camera.distance - newDist);
+                syncFovToDistance(gl.camera.distance);
             }
             else if (gl.pointers.length == 1) {
                 const SCALE_ROTATE = 0.2;
@@ -503,6 +525,7 @@ void main(void)
             log("Material Shininess: " + gl.material.shininess);
             log();
 
+            gl.fov = TINY_PLANET_FOV;
             handleResize();
             gl.matrixModel = new Matrix4();
             gl.matrixView = gl.camera.matrix;
@@ -652,15 +675,28 @@ void main(void)
                 printSphere();
             });
 
+            let inputFov = document.getElementById("inputFov");
+            inputFov.value = TINY_PLANET_FOV;
+            function applyFov() {
+                let v = parseFloat(inputFov.value);
+                if (isNaN(v)) return;
+                v = Math.max(1, Math.min(179, v));
+                inputFov.value = v;
+                gl.fov = v;
+                handleResize();
+            }
+            inputFov.addEventListener("change", applyFov);
+            inputFov.addEventListener("keydown", e => { if (e.key === "Enter") applyFov(); });
+
             let rangeCameraDist = document.getElementById("rangeCameraDist");
             let labelCameraDist = document.getElementById("labelCameraDist");
             rangeCameraDist.value = CAMERA_DIST;
             labelCameraDist.innerHTML = CAMERA_DIST;
             rangeCameraDist.addEventListener("input", e => {
                 let dist = parseFloat(rangeCameraDist.value);
-                labelCameraDist.innerHTML = dist.toFixed(1);
                 let delta = gl.camera.distance - dist;
                 gl.camera.moveForward(delta);
+                syncFovToDistance(dist);
             });
 
             let checkTexture = document.getElementById("checkTexture");
@@ -690,7 +726,7 @@ void main(void)
                 checkSmooth.checked = true;
                 checkNormal.checked = true;
                 gl.sphere.reverseNormals();
-                rangeCameraDist.value = CAMERA_DIST; labelCameraDist.innerHTML = CAMERA_DIST;
+                syncFovToDistance(CAMERA_DIST);
                 gl.textureEnabled = true;
                 gl.wireframeEnabled = false;
                 printSphere();
@@ -747,9 +783,17 @@ void main(void)
             </div>
 
             <div>
+                <span>Field of View (°)</span><br>
+                <div style="display:flex;align-items:center;margin-bottom:10px;">
+                    <input id="inputFov" type="number" min="1" max="179" step="1" value="150"
+                        style="width:100%;padding:4px;box-sizing:border-box;font-size:1em;">
+                </div>
+            </div>
+
+            <div>
                 <span>Camera Distance</span><br>
                 <div style="display:flex;align-items:center;">
-                    <input id="rangeCameraDist" class="slider" type="range" min="0.1" max="10" step="0.1" value="0.5"
+                    <input id="rangeCameraDist" class="slider" type="range" min="0.1" max="1" step="0.1" value="0.5"
                         style="flex:1;">
                     <label id="labelCameraDist" style="flex:0 0 2em;margin-left:5px;">0.5</label>
                 </div>
