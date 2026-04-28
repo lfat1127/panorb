@@ -264,6 +264,7 @@ void main(void)
         const CAMERA_DIST = 1;
         const ANIM_DURATION = 500;
         const IMAGE_PATH = "assets/";
+        const DEFAULT_PANORAMA_SOURCE = IMAGE_PATH + "grid512.png";
         const TINY_PLANET_FOV = 150;
         const TINY_PLANET_PITCH = 90;
         const MIN_FOV = 90;
@@ -272,10 +273,80 @@ void main(void)
         const initialRadius = 1.1;
 
         document.addEventListener("DOMContentLoaded", () => {
+            setupMobileBridge();
             let success = initWebGL("webglView");
             if (!success) return;
             initHtmlElements();
         });
+
+        function normalizePanoramaSource(source, mimeType = "image/jpeg") {
+            if (!source || typeof source !== "string") return null;
+
+            const trimmed = source.trim();
+            if (!trimmed) return null;
+
+            const lower = trimmed.toLowerCase();
+            if (lower.startsWith("data:image/") ||
+                lower.startsWith("http://") ||
+                lower.startsWith("https://") ||
+                lower.startsWith("file://") ||
+                lower.startsWith("blob:") ||
+                lower.startsWith("content://")) {
+                return trimmed;
+            }
+
+            // Accept raw base64 from native and convert to a data URL.
+            return "data:" + mimeType + ";base64," + trimmed;
+        }
+
+        function setPanoramaImageSource(source, mimeType) {
+            if (!gl) {
+                log("[WARNING] WebGL is not ready. Panorama image was not applied yet.");
+                return false;
+            }
+
+            const normalized = normalizePanoramaSource(source, mimeType);
+            if (!normalized) {
+                log("[ERROR] Invalid panorama image source.");
+                return false;
+            }
+
+            gl.tex0 = loadTexture(gl, normalized, true, tex => {
+                if (!tex) {
+                    log("[ERROR] Failed to apply panorama image from mobile app.");
+                    return;
+                }
+                log("Panorama image applied.");
+            });
+            return true;
+        }
+
+        function setupMobileBridge() {
+            window.SphereApp = {
+                setPanoramaImage: (source) => setPanoramaImageSource(source),
+                setPanoramaBase64: (base64, mimeType = "image/jpeg") => setPanoramaImageSource(base64, mimeType)
+            };
+
+            window.addEventListener("message", event => {
+                let payload = event.data;
+                if (typeof payload === "string") {
+                    try {
+                        payload = JSON.parse(payload);
+                    }
+                    catch (e) {
+                        return;
+                    }
+                }
+                if (!payload || typeof payload !== "object") return;
+
+                if (payload.type === "setPanorama") {
+                    setPanoramaImageSource(payload.source, payload.mimeType);
+                }
+                else if (payload.type === "setPanoramaBase64") {
+                    setPanoramaImageSource(payload.base64, payload.mimeType || "image/jpeg");
+                }
+            });
+        }
 
         function initWebGL(canvasId) {
             try {
@@ -325,7 +396,7 @@ void main(void)
                 log(gl.sphere);
 
                 // gl.tex0 = loadTexture(gl, IMAGE_PATH + "grid512.png", true);
-                gl.tex0 = loadTexture(gl, IMAGE_PATH + "panorama.jpg", true);
+                setPanoramaImageSource(DEFAULT_PANORAMA_SOURCE);
 
                 window.addEventListener("resize", handleResize, false);
                 canvas.addEventListener("click", handleClick, false);
