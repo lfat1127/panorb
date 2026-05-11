@@ -621,8 +621,8 @@ void main(void)
                 }
                 else {
                     let angle = new Vector3();
-                    angle.x = gl.camera.pointerAngle.x + (gl.pointers[0].y - gl.pointers.downs[0].y) * SCALE_ROTATE;
-                    angle.y = gl.camera.pointerAngle.y - (gl.pointers[0].x - gl.pointers.downs[0].x) * SCALE_ROTATE;
+                    angle.x = gl.camera.pointerAngle.x - (gl.pointers[0].y - gl.pointers.downs[0].y) * SCALE_ROTATE;
+                    angle.y = gl.camera.pointerAngle.y + (gl.pointers[0].x - gl.pointers.downs[0].x) * SCALE_ROTATE;
                     gl.camera.rotateTo(angle);
                 }
             }
