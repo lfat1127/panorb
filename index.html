@@ -44,6 +44,38 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             border: none;
         }
 
+        .mainblock.drag-active {
+            outline: 3px dashed rgba(0, 140, 255, 0.9);
+            outline-offset: -6px;
+        }
+
+        #dropHint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            opacity: 1;
+            pointer-events: none;
+            transition: opacity 120ms ease;
+            z-index: 30;
+        }
+
+        .drop-hint-label {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            background: rgba(10, 18, 28, 0.88);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
         .rightblock {
             flex: 0 0 250px;
             height: 100%;
@@ -273,6 +305,7 @@ void main(void)
         const MIN_DIST = 0.1;
         const SHOW_CONTROLS_UI = false;
         const initialRadius = 1.1;
+        let hasUserPanorama = false;
 
         document.addEventListener("DOMContentLoaded", () => {
             setupMobileBridge();
@@ -301,7 +334,14 @@ void main(void)
             return "data:" + mimeType + ";base64," + trimmed;
         }
 
-        function setPanoramaImageSource(source, mimeType) {
+        function updateDropHintVisibility() {
+            const dropHint = document.getElementById("dropHint");
+            if (!dropHint) return;
+            const shouldShow = !hasUserPanorama;
+            dropHint.style.opacity = shouldShow ? "1" : "0";
+        }
+
+        function setPanoramaImageSource(source, mimeType, markAsUserPanorama = true) {
             if (!gl) {
                 log("[WARNING] WebGL is not ready. Panorama image was not applied yet.");
                 return false;
@@ -318,6 +358,8 @@ void main(void)
                     log("[ERROR] Failed to apply panorama image from mobile app.");
                     return;
                 }
+                hasUserPanorama = !!markAsUserPanorama;
+                updateDropHintVisibility();
                 log("Panorama image applied.");
             });
             return true;
@@ -398,7 +440,7 @@ void main(void)
                 log(gl.sphere);
 
                 // gl.tex0 = loadTexture(gl, IMAGE_PATH + "grid512.png", true);
-                setPanoramaImageSource(DEFAULT_PANORAMA_SOURCE);
+                setPanoramaImageSource(DEFAULT_PANORAMA_SOURCE, undefined, false);
 
                 window.addEventListener("resize", handleResize, false);
                 canvas.addEventListener("click", handleClick, false);
@@ -409,6 +451,7 @@ void main(void)
                 canvas.addEventListener("pointermove", handlePointerMove, false);
                 canvas.addEventListener("pointercancel", handlePointerCancel, false);
                 canvas.addEventListener("pointerleave", handlePointerLeave, false);
+                initDragAndDrop(canvas);
 
                 startRendering(gl);
 
@@ -587,6 +630,94 @@ void main(void)
 
         function handlePointerCancel(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
         function handlePointerLeave(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
+
+        function initDragAndDrop(canvas) {
+            const mainBlock = canvas.parentElement;
+            if (!mainBlock) return;
+
+            const setDragActive = active => {
+                mainBlock.classList.toggle("drag-active", !!active);
+            };
+
+            let dragDepth = 0;
+
+            const onDragEnter = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                dragDepth += 1;
+                setDragActive(true);
+            };
+
+            const onDragOver = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+            };
+
+            const onDragLeave = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                dragDepth = Math.max(0, dragDepth - 1);
+                if (dragDepth === 0) {
+                    setDragActive(false);
+                }
+            };
+
+            const onDrop = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                dragDepth = 0;
+                setDragActive(false);
+
+                const files = e.dataTransfer && e.dataTransfer.files;
+                if (!files || files.length === 0) {
+                    log("[WARNING] No file found in drop payload.");
+                    return;
+                }
+
+                const imageFile = Array.from(files).find(file => file.type && file.type.startsWith("image/"));
+                if (!imageFile) {
+                    log("[WARNING] Dropped file is not an image.");
+                    return;
+                }
+
+                applyDroppedImage(imageFile);
+            };
+
+            ["dragenter", "dragover", "dragleave", "drop"].forEach(type => {
+                mainBlock.addEventListener(type, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            mainBlock.addEventListener("dragenter", onDragEnter, false);
+            mainBlock.addEventListener("dragover", onDragOver, false);
+            mainBlock.addEventListener("dragleave", onDragLeave, false);
+            mainBlock.addEventListener("drop", onDrop, false);
+            updateDropHintVisibility();
+        }
+
+        function applyDroppedImage(file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (typeof reader.result !== "string") {
+                    log("[ERROR] Failed to read dropped image data.");
+                    return;
+                }
+
+                const applied = setPanoramaImageSource(reader.result, file.type || "image/jpeg");
+                if (applied) {
+                    log("Dropped image applied: " + file.name);
+                }
+            };
+
+            reader.onerror = () => {
+                log("[ERROR] Failed to read dropped image: " + file.name);
+            };
+
+            reader.readAsDataURL(file);
+        }
 
         function copyPointer(pe, offset = { x: 0, y: 0 }) {
             return { id: pe.pointerId, x: pe.clientX - offset.x, y: pe.clientY - offset.y };
@@ -849,6 +980,7 @@ void main(void)
         <div class="mainblock">
             <button id="buttonTogglePanel" class="panel-toggle" type="button">Hide Controls</button>
             <canvas id="webglView" width="300" height="300"></canvas>
+            <div id="dropHint"><span class="drop-hint-label">Drag and drop to show the image</span></div>
             <pre id="info"></pre>
         </div>
 
