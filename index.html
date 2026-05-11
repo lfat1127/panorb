@@ -605,7 +605,7 @@ void main(void)
                 if (gl.pointers.distance > 0)
                     deltaRatio = (dist - gl.pointers.distance) / gl.pointers.distance;
                 gl.pointers.distance = dist;
-                let newDist = gl.camera.distance - deltaRatio * (CAMERA_DIST - MIN_DIST) * SCALE_ZOOM;
+                let newDist = gl.camera.distance + deltaRatio * (CAMERA_DIST - MIN_DIST) * SCALE_ZOOM;
                 newDist = Math.max(MIN_DIST, Math.min(CAMERA_DIST, newDist));
                 gl.camera.moveForward(gl.camera.distance - newDist);
                 syncFovToDistance(gl.camera.distance);
