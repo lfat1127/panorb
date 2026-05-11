@@ -62,9 +62,12 @@ Original: https://www.songho.ca/webgl/test_sphere.html
         }
 
         .drop-hint-label {
-            display: inline-block;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             padding: 12px 18px;
-            border-radius: 999px;
+            border-radius: 18px;
             border: 1px solid rgba(255, 255, 255, 0.65);
             background: rgba(10, 18, 28, 0.88);
             color: #fff;
@@ -72,6 +75,33 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             font-weight: 600;
             letter-spacing: 0.02em;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            pointer-events: auto;
+        }
+
+        .drop-hint-text {
+            line-height: 1.25;
+        }
+
+        .drop-upload-button {
+            min-width: 170px;
+            width: auto;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 8px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: background 120ms ease, transform 120ms ease;
+        }
+
+        .drop-upload-button:hover,
+        .drop-upload-button:focus-visible {
+            background: rgba(255, 255, 255, 0.24);
+            transform: translateY(-1px);
+            outline: none;
         }
 
         .rightblock {
@@ -790,6 +820,28 @@ void main(void)
             mainBlock.addEventListener("dragover", onDragOver, false);
             mainBlock.addEventListener("dragleave", onDragLeave, false);
             mainBlock.addEventListener("drop", onDrop, false);
+
+            const uploadButton = document.getElementById("dropUploadButton");
+            const fileInput = document.getElementById("fileImagePicker");
+            if (uploadButton && fileInput) {
+                uploadButton.addEventListener("click", e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInput.value = "";
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener("change", () => {
+                    if (!fileInput.files || fileInput.files.length === 0) return;
+                    const imageFile = Array.from(fileInput.files).find(file => file.type && file.type.startsWith("image/"));
+                    if (!imageFile) {
+                        log("[WARNING] Selected file is not an image.");
+                        return;
+                    }
+                    applyDroppedImage(imageFile);
+                });
+            }
+
             updateDropHintVisibility();
         }
 
@@ -1082,7 +1134,14 @@ void main(void)
         <div class="mainblock">
             <button id="buttonTogglePanel" class="panel-toggle" type="button">Hide Controls</button>
             <canvas id="webglView" width="300" height="300"></canvas>
-            <div id="dropHint"><span class="drop-hint-label">Drag and drop to show the image</span></div>
+            <div id="dropHint">
+                <div class="drop-hint-label">
+                    <span class="drop-hint-text">Drag and drop to show the image</span>
+                    <button id="dropUploadButton" class="drop-upload-button" type="button">Choose image from
+                        device</button>
+                </div>
+            </div>
+            <input id="fileImagePicker" type="file" accept="image/*" style="display:none;" />
             <pre id="info"></pre>
         </div>
 
