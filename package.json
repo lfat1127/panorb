@@ -1,0 +1,15 @@
+{
+    "name": "webgl-360-panorama",
+    "version": "1.0.0",
+    "description": "WebGL 360° panorama viewer with drag-and-drop image upload",
+    "scripts": {
+        "build": "echo 'Static site, no build required'"
+    },
+    "keywords": [
+        "webgl",
+        "panorama",
+        "360"
+    ],
+    "author": "",
+    "license": "ISC"
+}
