@@ -61,6 +61,10 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             z-index: 30;
         }
 
+        #dropHint.active {
+            pointer-events: auto;
+        }
+
         .drop-hint-label {
             display: inline-flex;
             flex-direction: column;
@@ -75,7 +79,6 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             font-weight: 600;
             letter-spacing: 0.02em;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-            pointer-events: auto;
         }
 
         .drop-hint-text {
@@ -445,6 +448,7 @@ void main(void)
             if (!dropHint) return;
             const shouldShow = !hasUserPanorama;
             dropHint.style.opacity = shouldShow ? "1" : "0";
+            dropHint.classList.toggle("active", shouldShow);
         }
 
         function setPanoramaImageSource(source, mimeType, markAsUserPanorama = true) {
@@ -705,20 +709,13 @@ void main(void)
             pe.preventDefault();
             let offset = getElementOffset(this);
             let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
-            if (index == 0) {
-                gl.pointers[0].delta = new Vector2(
-                    (pe.pageX - offset.x) - gl.pointers[0].x,
-                    (pe.pageY - offset.y) - gl.pointers[0].y);
-                gl.pointers[0].x = pe.pageX - offset.x;
-                gl.pointers[0].y = pe.pageY - offset.y;
-            }
-            else if (index == 1) {
-                gl.pointers[1].delta = new Vector2(
-                    (pe.pageX - offset.x) - gl.pointers[1].x,
-                    (pe.pageY - offset.y) - gl.pointers[1].y);
-                gl.pointers[1].x = pe.pageX - offset.x;
-                gl.pointers[1].y = pe.pageY - offset.y;
-            }
+            if (index < 0) return; // Pointer not found
+            
+            const newX = pe.pageX - offset.x;
+            const newY = pe.pageY - offset.y;
+            gl.pointers[index].delta = new Vector2(newX - gl.pointers[index].x, newY - gl.pointers[index].y);
+            gl.pointers[index].x = newX;
+            gl.pointers[index].y = newY;
 
             if (gl.pointers.length == 2) {
                 const SCALE_ZOOM = 0.0001;
@@ -753,8 +750,20 @@ void main(void)
             }
         }
 
-        function handlePointerCancel(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
-        function handlePointerLeave(pe) { gl.pointers.length = 0; gl.pointers.distance = 0; }
+        function handlePointerCancel(pe) {
+            let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
+            if (index >= 0) {
+                gl.pointers.splice(index, 1);
+                gl.pointers.distance = 0;
+            }
+        }
+        function handlePointerLeave(pe) {
+            let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
+            if (index >= 0) {
+                gl.pointers.splice(index, 1);
+                gl.pointers.distance = 0;
+            }
+        }
 
         function initDragAndDrop(canvas) {
             const mainBlock = canvas.parentElement;
