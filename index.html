@@ -710,7 +710,7 @@ void main(void)
             let offset = getElementOffset(this);
             let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
             if (index < 0) return; // Pointer not found
-
+            
             const newX = pe.pageX - offset.x;
             const newY = pe.pageY - offset.y;
             gl.pointers[index].delta = new Vector2(newX - gl.pointers[index].x, newY - gl.pointers[index].y);
