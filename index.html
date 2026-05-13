@@ -9,9 +9,16 @@ Original: https://www.songho.ca/webgl/test_sphere.html
 -->
 
 <head>
-    <title>Sphere</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9657734017042019"
+        crossorigin="anonymous"></script>
+    <title>PanOrb</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0a121c">
+    <link rel="icon" href="assets/icons/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
 
     <style type="text/css">
         html,
@@ -710,7 +717,7 @@ void main(void)
             let offset = getElementOffset(this);
             let index = gl.pointers.findIndex(p => p.id == pe.pointerId);
             if (index < 0) return; // Pointer not found
-            
+
             const newX = pe.pageX - offset.x;
             const newY = pe.pageY - offset.y;
             gl.pointers[index].delta = new Vector2(newX - gl.pointers[index].x, newY - gl.pointers[index].y);
