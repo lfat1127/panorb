@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Frequently asked questions for PanOrb.">
+    <title>PanOrb FAQ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap');
+
+        :root {
+            --bg-0: #09111f;
+            --bg-1: #14253e;
+            --bg-2: #21385b;
+            --ink: #ecf3ff;
+            --ink-soft: #bdd0ed;
+            --accent: #8ce99a;
+            --accent-2: #ffd18a;
+            --panel: rgba(5, 12, 23, 0.72);
+            --panel-border: rgba(255, 255, 255, 0.16);
+            --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --max-width: 980px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: 'IBM Plex Sans', sans-serif;
+            background:
+                radial-gradient(900px 500px at 12% 5%, rgba(255, 209, 138, 0.18), transparent 60%),
+                radial-gradient(700px 500px at 90% 8%, rgba(140, 233, 154, 0.14), transparent 60%),
+                linear-gradient(160deg, var(--bg-0), var(--bg-1) 45%, var(--bg-2));
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.22;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 0.6px, transparent 0.6px);
+            background-size: 3px 3px;
+            mix-blend-mode: soft-light;
+        }
+
+        .page {
+            width: min(100% - 2.2rem, var(--max-width));
+            margin: 3.5rem auto 4rem;
+            animation: rise 700ms cubic-bezier(.17, .84, .44, 1) both;
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(22px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .hero {
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(155deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+            backdrop-filter: blur(10px);
+            padding: 2.4rem 2.1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .eyebrow {
+            margin: 0;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.74rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        h1 {
+            margin: 0.65rem 0 0.75rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 5.8vw, 3.2rem);
+            letter-spacing: -0.02em;
+            line-height: 1.04;
+            max-width: 14ch;
+        }
+
+        .lead {
+            margin: 0;
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--ink-soft);
+            max-width: 64ch;
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .lang-switch {
+            display: inline-flex;
+            gap: 0.4rem;
+            padding: 0.35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.22);
+        }
+
+        .lang-link {
+            color: var(--ink-soft);
+            text-decoration: none;
+            font: 600 0.82rem/1 'Space Grotesk', sans-serif;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            padding: 0.5rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 180ms ease;
+        }
+
+        .lang-link:hover {
+            color: var(--ink);
+            border-color: rgba(255, 255, 255, 0.26);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .lang-link.active {
+            color: #081223;
+            background: var(--accent);
+            border-color: rgba(140, 233, 154, 0.8);
+        }
+
+        .faq-list {
+            margin: 1.2rem 0 0;
+            display: grid;
+            gap: 0.85rem;
+        }
+
+        details {
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-md);
+            background: var(--panel);
+            backdrop-filter: blur(6px);
+            overflow: hidden;
+        }
+
+        details[open] {
+            border-color: rgba(140, 233, 154, 0.4);
+            box-shadow: 0 0 0 1px rgba(140, 233, 154, 0.25), 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1rem 1.1rem;
+            font: 600 1.02rem/1.35 'Space Grotesk', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .chev {
+            flex: 0 0 auto;
+            width: 24px;
+            height: 24px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: grid;
+            place-items: center;
+            color: var(--accent-2);
+            transition: transform 180ms ease;
+            font-size: 0.9rem;
+        }
+
+        details[open] .chev {
+            transform: rotate(45deg);
+        }
+
+        .answer {
+            padding: 0 1.1rem 1.1rem;
+            color: var(--ink-soft);
+            line-height: 1.7;
+        }
+
+        .answer p {
+            margin: 0;
+        }
+
+        .answer p+p,
+        .answer ul,
+        .answer ol {
+            margin-top: 0.75rem;
+        }
+
+        .answer ul,
+        .answer ol {
+            padding-left: 1.25rem;
+        }
+
+        .answer li+li {
+            margin-top: 0.42rem;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 0.16em;
+        }
+
+        .footer-note {
+            margin: 1.4rem 0 0;
+            border: 1px dashed rgba(255, 255, 255, 0.24);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.1rem;
+            color: var(--ink-soft);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                width: min(100% - 1.2rem, var(--max-width));
+                margin-top: 1.2rem;
+            }
+
+            .hero {
+                padding: 1.4rem 1rem;
+            }
+
+            .hero-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            summary {
+                font-size: 0.97rem;
+                padding: 0.9rem 0.9rem;
+            }
+
+            .answer {
+                padding: 0 0.9rem 0.95rem;
+                font-size: 0.96rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grain" aria-hidden="true"></div>
+    <main class="page">
+        <section class="hero" aria-labelledby="faq-heading">
+            <div class="hero-top">
+                <p class="eyebrow">Support</p>
+                <nav class="lang-switch" aria-label="Language switcher">
+                    <a class="lang-link active" href="faq.html" aria-current="page">EN</a>
+                    <a class="lang-link" href="faq-zh.html" lang="zh-Hant">繁中</a>
+                </nav>
+            </div>
+            <h1 id="faq-heading">PanOrb Frequently Asked Questions</h1>
+            <p class="lead">Quick answers to setup questions, media requirements, and common troubleshooting steps.</p>
+
+            <section class="faq-list" aria-label="Frequently asked questions list">
+                <details open>
+                    <summary>
+                        What is PanOrb?
+                        <span class="chev" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer">
+                        <p>
+                            PanOrb is a software application designed to provide users with a comprehensive platform for
+                            managing digital media content.
+                        </p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>
+                        How do I install PanOrb?
+                        <span class="chev" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer">
+                        <p><strong>Desktop</strong></p>
+                        <p>
+                            Visit <a href="https://rayraychowchow.com/panorb">rayraychowchow.com/panorb</a>. Desktop
+                            currently
+                            supports images, and video support for online media is planned.
+                        </p>
+                        <p><strong>Mobile Apps</strong></p>
+                        <p>
+                            Download PanOrb from the Google Play Store or Apple App Store by searching for "PanOrb" and
+                            following your device's installation steps.
+                        </p>
+                        <p>
+                            Mobile supports both images and videos on device. For online media, image support is
+                            available now
+                            and video support is planned.
+                        </p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>
+                        Is PanOrb free to use?
+                        <span class="chev" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer">
+                        <p>Yes, PanOrb is free to use.</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>
+                        Bugs and issues
+                        <span class="chev" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer">
+                        <ol>
+                            <li>
+                                Ensure your images or videos use a <strong>2:1 ratio</strong>. If media does not match
+                                this ratio,
+                                it may not display correctly.
+                            </li>
+                            <li>
+                                If media is not displaying, refresh the page or restart the application. If the issue
+                                persists,
+                                contact support.
+                            </li>
+                            <li>
+                                On mobile, try clearing app cache or reinstalling the app if you encounter issues.
+                            </li>
+                            <li>
+                                On some Android phones, video playback may appear laggy or not smooth due to limited
+                                processor performance, high video resolution, or high bitrates. For a better playback
+                                experience, try using a more powerful phone or reduce the video's resolution and
+                                bitrate.
+                            </li>
+                        </ol>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>
+                        Why is my media not found in the mobile list?
+                        <span class="chev" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer">
+                        <p>
+                            Make sure PanOrb has permission to access photos/videos in your device settings.
+                        </p>
+                        <p>
+                            Also verify that media files follow the required <strong>2:1 ratio</strong> so they can
+                            appear correctly
+                            in the list.
+                        </p>
+                    </div>
+                </details>
+            </section>
+
+            <p class="footer-note">
+                This FAQ is updated regularly as we receive more questions. If your question is not listed yet, please
+                contact the support team.
+            </p>
+        </section>
+    </main>
+</body>
+
+</html>
