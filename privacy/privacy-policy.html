@@ -213,7 +213,7 @@
             <h1 id="policy-title">Privacy Policy</h1>
             <p>
                 This Privacy Policy explains how PanOrb ("the App") handles information
-                when you use the app on iOS.
+                when you use the app on iOS and Android.
             </p>
             <p class="stamp"><strong>Last updated:</strong> May 22, 2026</p>
         </section>
@@ -233,13 +233,13 @@
                     <tr>
                         <td>Photo Library access</td>
                         <td>
-                            Photos and videos from your device library, including cloud-backed assets
-                            available through Apple Photos.
+                            Photos and videos from your device library that the app can access after you grant
+                            media permission.
                         </td>
                         <td>
                             To display 360 media in the gallery and open selected items in the viewer.
                         </td>
-                        <td>On-device via Apple Photos framework permissions.</td>
+                        <td>On-device via Apple Photos / iOS Photos permissions and Android media permissions.</td>
                     </tr>
                     <tr>
                         <td>Photo save permission</td>
@@ -247,7 +247,7 @@
                             The image you explicitly choose to save from the viewer.
                         </td>
                         <td>To add exported images to your photo library.</td>
-                        <td>On-device via Apple Photos "add only" authorization.</td>
+                        <td>On-device via iOS Photos APIs and Android storage/media APIs.</td>
                     </tr>
                     <tr>
                         <td>URL input and network requests</td>
@@ -268,7 +268,7 @@
                             Language preference and recent links list.
                         </td>
                         <td>To remember your settings and improve convenience.</td>
-                        <td>Stored locally on your device (UserDefaults).</td>
+                        <td>Stored locally on your device (UserDefaults on iOS, SharedPreferences on Android).</td>
                     </tr>
                     <tr>
                         <td>Advertising data (Google AdMob)</td>
@@ -306,7 +306,8 @@
             <ul>
                 <li>The app does not require account registration and does not sell your personal data.</li>
                 <li>
-                    Content may be shared only when you actively use iOS sharing actions or interact with third-party ad
+                    Content may be shared only when you actively use iOS or Android sharing actions or interact with
+                    third-party ad
                     services.
                 </li>
                 <li>
@@ -322,7 +323,7 @@
                 <li>Recent links and language preference remain on-device until you clear app data or uninstall the app.
                 </li>
                 <li>You can clear recent links inside the app.</li>
-                <li>You can manage Photo Library permissions anytime in iOS Settings.</li>
+                <li>You can manage media/photo permissions anytime in iOS or Android system settings.</li>
             </ul>
         </section>
 
@@ -337,7 +338,8 @@
         <section class="card" aria-labelledby="security-title">
             <h2 id="security-title">6. Security</h2>
             <p>
-                We use platform-provided iOS APIs and reasonable technical measures to handle data, but no method of
+                We use platform-provided iOS and Android APIs and reasonable technical measures to handle data, but no
+                method of
                 electronic transmission or storage is completely secure.
             </p>
         </section>
