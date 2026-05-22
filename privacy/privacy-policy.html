@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy | PanOrb</title>
+    <meta name="description" content="Privacy Policy for PanOrb" />
+    <style>
+        :root {
+            --bg-1: #f6efe3;
+            --bg-2: #dbe9ff;
+            --panel: #fffdf8;
+            --ink: #1b1e25;
+            --muted: #4e5666;
+            --accent: #0048e5;
+            --accent-2: #008a64;
+            --ring: rgba(0, 72, 229, 0.25);
+            --line: rgba(27, 30, 37, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(1200px 700px at -15% -10%, #ffd7a8 0%, transparent 70%),
+                radial-gradient(900px 700px at 105% -5%, #c2dcff 0%, transparent 65%),
+                linear-gradient(160deg, var(--bg-1), var(--bg-2));
+            font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+            line-height: 1.6;
+            min-height: 100%;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin: 0 0 0.6rem 0;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+            font-weight: 650;
+        }
+
+        p,
+        li {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        a {
+            color: var(--accent);
+            text-underline-offset: 2px;
+        }
+
+        .wrap {
+            width: min(900px, calc(100% - 2rem));
+            margin: 2.5rem auto 3rem;
+        }
+
+        .hero {
+            padding: 1.5rem;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 20px 50px rgba(27, 30, 37, 0.07);
+            animation: rise 620ms ease-out both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.78rem;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        }
+
+        .stamp {
+            margin-top: 0.9rem;
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .card {
+            margin-top: 1rem;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+            padding: 1.2rem 1.25rem;
+            animation: rise 620ms 60ms ease-out both;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            display: block;
+            margin-top: 0.7rem;
+        }
+
+        .table thead,
+        .table tbody,
+        .table tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .table th,
+        .table td {
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+            padding: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .table th {
+            color: var(--ink);
+            background: #f5f8ff;
+            font-weight: 650;
+        }
+
+        .table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .notice {
+            border-left: 4px solid var(--accent-2);
+            background: #effaf5;
+            color: #214236;
+            border-radius: 10px;
+            padding: 0.85rem 0.9rem;
+            margin-top: 0.8rem;
+            font-size: 0.94rem;
+        }
+
+        .footer {
+            margin-top: 2.2rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .wrap {
+                margin-top: 1.2rem;
+            }
+
+            .hero,
+            .card {
+                border-radius: 16px;
+            }
+
+            .table {
+                overflow-x: auto;
+                white-space: normal;
+            }
+
+            .table thead,
+            .table tbody,
+            .table tr {
+                min-width: 680px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrap">
+        <section class="hero" aria-labelledby="policy-title">
+            <span class="eyebrow">PanOrb</span>
+            <h1 id="policy-title">Privacy Policy</h1>
+            <p>
+                This Privacy Policy explains how PanOrb ("the App") handles information
+                when you use the app on iOS.
+            </p>
+            <p class="stamp"><strong>Last updated:</strong> May 22, 2026</p>
+        </section>
+
+        <section class="card" aria-labelledby="collect-title">
+            <h2 id="collect-title">1. Information We Process</h2>
+            <table class="table" role="table" aria-label="Data processing summary">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>What is processed</th>
+                        <th>Why</th>
+                        <th>Where it is handled</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Photo Library access</td>
+                        <td>
+                            Photos and videos from your device library, including cloud-backed assets
+                            available through Apple Photos.
+                        </td>
+                        <td>
+                            To display 360 media in the gallery and open selected items in the viewer.
+                        </td>
+                        <td>On-device via Apple Photos framework permissions.</td>
+                    </tr>
+                    <tr>
+                        <td>Photo save permission</td>
+                        <td>
+                            The image you explicitly choose to save from the viewer.
+                        </td>
+                        <td>To add exported images to your photo library.</td>
+                        <td>On-device via Apple Photos "add only" authorization.</td>
+                    </tr>
+                    <tr>
+                        <td>URL input and network requests</td>
+                        <td>
+                            URLs you enter manually, plus related HTTP responses needed to load image content.
+                        </td>
+                        <td>
+                            To validate and download images from links you provide.
+                        </td>
+                        <td>
+                            Sent to the host you specify in the URL. The app does not operate its own upload server for
+                            this feature.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Local app preferences</td>
+                        <td>
+                            Language preference and recent links list.
+                        </td>
+                        <td>To remember your settings and improve convenience.</td>
+                        <td>Stored locally on your device (UserDefaults).</td>
+                    </tr>
+                    <tr>
+                        <td>Advertising data (Google AdMob)</td>
+                        <td>
+                            Ad request, impression, click, and device/app context data processed by Google Mobile Ads
+                            SDK.
+                        </td>
+                        <td>To display in-app banner ads and measure ad performance.</td>
+                        <td>Processed by Google according to its own policies.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card" aria-labelledby="third-party-title">
+            <h2 id="third-party-title">2. Third-Party Services</h2>
+            <p>The App uses the following third-party services:</p>
+            <ul>
+                <li>Google Mobile Ads (AdMob) for banner ads.</li>
+                <li>Firebase Core is initialized for Google service configuration in the app build.</li>
+            </ul>
+            <p>
+                According to the app configuration, Firebase Analytics is set to disabled in the bundled configuration
+                file.
+                Third-party providers may still process technical data required to deliver their services.
+            </p>
+            <p>
+                See also: <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google
+                    Privacy Policy</a>
+            </p>
+        </section>
+
+        <section class="card" aria-labelledby="sharing-title">
+            <h2 id="sharing-title">3. Sharing and Disclosure</h2>
+            <ul>
+                <li>The app does not require account registration and does not sell your personal data.</li>
+                <li>
+                    Content may be shared only when you actively use iOS sharing actions or interact with third-party ad
+                    services.
+                </li>
+                <li>
+                    URLs you enter are transmitted to the destination host to retrieve content; this is necessary for
+                    URL loading.
+                </li>
+            </ul>
+        </section>
+
+        <section class="card" aria-labelledby="retention-title">
+            <h2 id="retention-title">4. Data Retention and Control</h2>
+            <ul>
+                <li>Recent links and language preference remain on-device until you clear app data or uninstall the app.
+                </li>
+                <li>You can clear recent links inside the app.</li>
+                <li>You can manage Photo Library permissions anytime in iOS Settings.</li>
+            </ul>
+        </section>
+
+        <section class="card" aria-labelledby="children-title">
+            <h2 id="children-title">5. Children's Privacy</h2>
+            <p>
+                The app is not directed to children under 13. If you believe a child provided data through the app,
+                contact us so we can review and address the issue.
+            </p>
+        </section>
+
+        <section class="card" aria-labelledby="security-title">
+            <h2 id="security-title">6. Security</h2>
+            <p>
+                We use platform-provided iOS APIs and reasonable technical measures to handle data, but no method of
+                electronic transmission or storage is completely secure.
+            </p>
+        </section>
+
+        <section class="card" aria-labelledby="changes-title">
+            <h2 id="changes-title">7. Changes to This Policy</h2>
+            <p>
+                We may update this Privacy Policy from time to time. Updates will be reflected by changing the
+                "Last updated" date on this page.
+            </p>
+        </section>
+
+        <section class="card" aria-labelledby="contact-title">
+            <h2 id="contact-title">8. Contact</h2>
+            <p>
+                For privacy questions, contact: <a href="mailto:raychowiosdev@gmail.com">raychowiosdev@gmail.com</a>
+            </p>
+            <p class="notice">
+                Replace the contact email above with your real support or privacy email before publishing.
+            </p>
+        </section>
+
+        <p class="footer">PanOrb Privacy Policy</p>
+    </main>
+</body>
+
+</html>
