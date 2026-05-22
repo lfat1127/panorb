@@ -1,12 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Privacy Policy | PanOrb</title>
-    <meta name="description" content="Privacy Policy for PanOrb" />
+    <title>隱私權政策 | PanOrb</title>
+    <meta name="description" content="PanOrb 隱私權政策" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans+TC:wght@400;500;700&display=swap');
+
         :root {
             --bg-1: #f6efe3;
             --bg-2: #dbe9ff;
@@ -32,7 +34,7 @@
                 radial-gradient(1200px 700px at -15% -10%, #ffd7a8 0%, transparent 70%),
                 radial-gradient(900px 700px at 105% -5%, #c2dcff 0%, transparent 65%),
                 linear-gradient(160deg, var(--bg-1), var(--bg-2));
-            font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+            font-family: "IBM Plex Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
             line-height: 1.6;
             min-height: 100%;
         }
@@ -109,12 +111,6 @@
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
         }
 
-        .stamp {
-            margin-top: 0.9rem;
-            font-size: 0.95rem;
-            color: var(--muted);
-        }
-
         .lang-switch {
             display: inline-flex;
             gap: 0.35rem;
@@ -146,6 +142,12 @@
             color: #ffffff;
             border-color: var(--accent);
             background: var(--accent);
+        }
+
+        .stamp {
+            margin-top: 0.9rem;
+            font-size: 0.95rem;
+            color: var(--muted);
         }
 
         .card {
@@ -257,163 +259,153 @@
             <div class="hero-top">
                 <span class="eyebrow">PanOrb</span>
                 <nav class="lang-switch" aria-label="Language switcher">
-                    <a class="lang-link active" href="privacy-policy.html" aria-current="page">EN</a>
-                    <a class="lang-link" href="privacy-policy-zh.html" lang="zh-Hant">繁中</a>
+                    <a class="lang-link" href="privacy-policy.html">EN</a>
+                    <a class="lang-link active" href="privacy-policy-zh.html" aria-current="page" lang="zh-Hant">繁中</a>
                 </nav>
             </div>
-            <h1 id="policy-title">Privacy Policy</h1>
+            <h1 id="policy-title">隱私權政策</h1>
             <p>
-                This Privacy Policy explains how PanOrb ("the App") handles information
-                when you use the app on iOS and Android.
+                本隱私權政策說明 PanOrb（以下稱「本 App」）在您於 iOS 與 Android 使用本 App 時，
+                如何處理相關資訊。
             </p>
-            <p class="stamp"><strong>Last updated:</strong> May 22, 2026</p>
+            <p class="stamp"><strong>最後更新：</strong>2026 年 5 月 22 日</p>
         </section>
 
         <section class="card" aria-labelledby="collect-title">
-            <h2 id="collect-title">1. Information We Process</h2>
-            <table class="table" role="table" aria-label="Data processing summary">
+            <h2 id="collect-title">1. 我們處理的資訊</h2>
+            <table class="table" role="table" aria-label="資料處理摘要">
                 <thead>
                     <tr>
-                        <th>Category</th>
-                        <th>What is processed</th>
-                        <th>Why</th>
-                        <th>Where it is handled</th>
+                        <th>類別</th>
+                        <th>處理內容</th>
+                        <th>用途</th>
+                        <th>處理位置</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Photo Library access</td>
+                        <td>相簿存取權限</td>
                         <td>
-                            Photos and videos from your device library that the app can access after you grant
-                            media permission.
+                            您授權媒體權限後，本 App 可存取您裝置相簿中的照片與影片。
                         </td>
                         <td>
-                            To display 360 media in the gallery and open selected items in the viewer.
+                            用於在媒體庫顯示 360 媒體，並開啟您選取的項目進入檢視器。
                         </td>
-                        <td>On-device via Apple Photos / iOS Photos permissions and Android media permissions.</td>
+                        <td>透過 iOS Photos 權限與 Android 媒體權限於裝置端處理。</td>
                     </tr>
                     <tr>
-                        <td>Photo save permission</td>
+                        <td>儲存照片權限</td>
                         <td>
-                            The image you explicitly choose to save from the viewer.
+                            您在檢視器中主動選擇要儲存的影像。
                         </td>
-                        <td>To add exported images to your photo library.</td>
-                        <td>On-device via iOS Photos APIs and Android storage/media APIs.</td>
+                        <td>用於將匯出的影像加入您的相簿。</td>
+                        <td>透過 iOS Photos API 與 Android 儲存/媒體 API 於裝置端處理。</td>
                     </tr>
                     <tr>
-                        <td>URL input and network requests</td>
+                        <td>URL 輸入與網路請求</td>
                         <td>
-                            URLs you enter manually, plus related HTTP responses needed to load image content.
+                            您手動輸入的 URL，以及載入影像內容所需的 HTTP 回應資料。
                         </td>
                         <td>
-                            To validate and download images from links you provide.
+                            用於驗證並下載您提供連結中的影像。
                         </td>
                         <td>
-                            Sent to the host you specify in the URL. The app does not operate its own upload server for
-                            this feature.
+                            請求會送往您指定 URL 的主機。本 App 不會為此功能營運自有上傳伺服器。
                         </td>
                     </tr>
                     <tr>
-                        <td>Local app preferences</td>
+                        <td>本機偏好設定</td>
                         <td>
-                            Language preference and recent links list.
+                            語言偏好與最近連結清單。
                         </td>
-                        <td>To remember your settings and improve convenience.</td>
-                        <td>Stored locally on your device (UserDefaults on iOS, SharedPreferences on Android).</td>
+                        <td>用於記住您的設定並提升使用便利性。</td>
+                        <td>儲存在裝置本機（iOS 的 UserDefaults、Android 的 SharedPreferences）。</td>
                     </tr>
                     <tr>
-                        <td>Advertising data (Google AdMob)</td>
+                        <td>廣告資料（Google AdMob）</td>
                         <td>
-                            Ad request, impression, click, and device/app context data processed by Google Mobile Ads
-                            SDK.
+                            由 Google Mobile Ads SDK 處理的廣告請求、曝光、點擊，以及裝置/應用情境資料。
                         </td>
-                        <td>To display in-app banner ads and measure ad performance.</td>
-                        <td>Processed by Google according to its own policies.</td>
+                        <td>用於顯示 App 內橫幅廣告並衡量廣告成效。</td>
+                        <td>由 Google 依其自身政策處理。</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section class="card" aria-labelledby="third-party-title">
-            <h2 id="third-party-title">2. Third-Party Services</h2>
-            <p>The App uses the following third-party services:</p>
+            <h2 id="third-party-title">2. 第三方服務</h2>
+            <p>本 App 使用以下第三方服務：</p>
             <ul>
-                <li>Google Mobile Ads (AdMob) for banner ads.</li>
-                <li>Firebase Core is initialized for Google service configuration in the app build.</li>
+                <li>Google Mobile Ads（AdMob），用於顯示橫幅廣告。</li>
+                <li>Firebase Core，於 App 建置時初始化 Google 服務設定。</li>
             </ul>
             <p>
-                According to the app configuration, Firebase Analytics is set to disabled in the bundled configuration
-                file.
-                Third-party providers may still process technical data required to deliver their services.
+                依目前 App 設定，打包設定檔中的 Firebase Analytics 為停用狀態。
+                第三方服務供應商仍可能為提供其服務而處理必要的技術資料。
             </p>
             <p>
-                See also: <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google
-                    Privacy Policy</a>
+                另請參考：<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google
+                    隱私權政策</a>
             </p>
         </section>
 
         <section class="card" aria-labelledby="sharing-title">
-            <h2 id="sharing-title">3. Sharing and Disclosure</h2>
+            <h2 id="sharing-title">3. 分享與揭露</h2>
             <ul>
-                <li>The app does not require account registration and does not sell your personal data.</li>
+                <li>本 App 不要求帳號註冊，亦不會販售您的個人資料。</li>
                 <li>
-                    Content may be shared only when you actively use iOS or Android sharing actions or interact with
-                    third-party ad
-                    services.
+                    只有當您主動使用 iOS 或 Android 的分享功能，或與第三方廣告服務互動時，內容才可能被分享。
                 </li>
                 <li>
-                    URLs you enter are transmitted to the destination host to retrieve content; this is necessary for
-                    URL loading.
+                    您輸入的 URL 會傳送至目標主機以取得內容，這是 URL 載入功能所必需。
                 </li>
             </ul>
         </section>
 
         <section class="card" aria-labelledby="retention-title">
-            <h2 id="retention-title">4. Data Retention and Control</h2>
+            <h2 id="retention-title">4. 資料保存與控制</h2>
             <ul>
-                <li>Recent links and language preference remain on-device until you clear app data or uninstall the app.
-                </li>
-                <li>You can clear recent links inside the app.</li>
-                <li>You can manage media/photo permissions anytime in iOS or Android system settings.</li>
+                <li>最近連結與語言偏好會保留在裝置本機，直到您清除 App 資料或解除安裝 App。</li>
+                <li>您可在 App 內清除最近連結。</li>
+                <li>您可隨時在 iOS 或 Android 系統設定中管理媒體/照片權限。</li>
             </ul>
         </section>
 
         <section class="card" aria-labelledby="children-title">
-            <h2 id="children-title">5. Children's Privacy</h2>
+            <h2 id="children-title">5. 兒童隱私</h2>
             <p>
-                The app is not directed to children under 13. If you believe a child provided data through the app,
-                contact us so we can review and address the issue.
+                本 App 並非以 13 歲以下兒童為主要對象。若您認為有兒童透過本 App 提供資料，
+                請聯絡我們，以便我們審查並處理。
             </p>
         </section>
 
         <section class="card" aria-labelledby="security-title">
-            <h2 id="security-title">6. Security</h2>
+            <h2 id="security-title">6. 安全性</h2>
             <p>
-                We use platform-provided iOS and Android APIs and reasonable technical measures to handle data, but no
-                method of
-                electronic transmission or storage is completely secure.
+                我們使用 iOS 與 Android 平台提供的 API 及合理技術措施處理資料；
+                但任何電子傳輸或儲存方式皆無法保證絕對安全。
             </p>
         </section>
 
         <section class="card" aria-labelledby="changes-title">
-            <h2 id="changes-title">7. Changes to This Policy</h2>
+            <h2 id="changes-title">7. 本政策的變更</h2>
             <p>
-                We may update this Privacy Policy from time to time. Updates will be reflected by changing the
-                "Last updated" date on this page.
+                我們可能不定期更新本隱私權政策。更新內容將反映在本頁面的「最後更新」日期。
             </p>
         </section>
 
         <section class="card" aria-labelledby="contact-title">
-            <h2 id="contact-title">8. Contact</h2>
+            <h2 id="contact-title">8. 聯絡我們</h2>
             <p>
-                For privacy questions, contact: <a href="mailto:raychowiosdev@gmail.com">raychowiosdev@gmail.com</a>
+                若您有隱私相關問題，請聯絡：<a href="mailto:raychowiosdev@gmail.com">raychowiosdev@gmail.com</a>
             </p>
             <p class="notice">
-                Replace the contact email above with your real support or privacy email before publishing.
+                發布前請將上述聯絡信箱替換為您實際使用的客服或隱私聯絡信箱。
             </p>
         </section>
 
-        <p class="footer">PanOrb Privacy Policy</p>
+        <p class="footer">PanOrb 隱私權政策</p>
     </main>
 </body>
 
