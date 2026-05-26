@@ -723,7 +723,7 @@ void main(void)
 
             // FOV curve: 160 at small screens (<=480), smoothly transitions to 140 by 1440+.
             const fovT = clamp01((minDim - 480) / (1440 - 480));
-            const baseFov = 140 + 20 * (1 - Math.pow(fovT, 3));
+            const baseFov = 140 + 10 * (1 - Math.pow(fovT, 3));
             // Aspect compensation: squarer screens (like tablets) need a slightly wider FOV
             // so the panorama better reaches all four corners.
             const aspectT = clamp01((1.78 - aspect) / (1.78 - 1.0));
