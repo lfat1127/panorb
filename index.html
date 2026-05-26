@@ -173,7 +173,7 @@ Original: https://www.songho.ca/webgl/test_sphere.html
         .video-controls .video-time-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            /* gap: 6px; */
             flex: 1 1 320px;
             min-width: 220px;
         }
@@ -184,7 +184,7 @@ Original: https://www.songho.ca/webgl/test_sphere.html
         }
 
         .video-controls .video-time-label {
-            min-width: 100px;
+            min-width: 88px;
             font-size: 13px;
             font-variant-numeric: tabular-nums;
             text-align: right;
@@ -199,9 +199,32 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             min-width: 160px;
         }
 
-        .video-controls .video-volume-label {
-            font-size: 13px;
-            white-space: nowrap;
+        .video-controls .video-volume-toggle {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 999px;
+            background-color: rgba(255, 255, 255, 0.12);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 18px 18px;
+            background-image: url("assets/images/volume_high.svg");
+            cursor: pointer;
+            color: transparent;
+            font-size: 0;
+            line-height: 0;
+        }
+
+        .video-controls .video-volume-toggle:hover,
+        .video-controls .video-volume-toggle:focus-visible {
+            background-color: rgba(255, 255, 255, 0.22);
+            outline: none;
+        }
+
+        .video-controls .video-volume-toggle.is-muted {
+            background-image: url("assets/images/volume_off.svg");
         }
 
         .video-controls .video-volume {
@@ -471,6 +494,8 @@ void main(void)
         let videoSeek = null;
         let videoTimeLabel = null;
         let videoVolume = null;
+        let videoVolumeToggle = null;
+        let videoLastNonMutedVolume = 1;
 
         document.addEventListener("DOMContentLoaded", () => {
             setupMobileBridge();
@@ -584,12 +609,19 @@ void main(void)
                     videoPlayPauseButton.setAttribute("aria-label", "Play video");
                     videoPlayPauseButton.title = "Play video";
                 }
+                if (videoVolumeToggle) {
+                    videoVolumeToggle.classList.remove("is-muted");
+                    videoVolumeToggle.style.backgroundImage = 'url("assets/images/volume_high.svg")';
+                    videoVolumeToggle.setAttribute("aria-label", "Mute audio");
+                    videoVolumeToggle.title = "Mute audio";
+                }
                 if (videoSeek) {
                     videoSeek.value = "0";
                     videoSeek.max = "1";
                 }
                 if (videoTimeLabel) videoTimeLabel.textContent = "0:00 / 0:00";
                 if (videoVolume) videoVolume.value = "1";
+                videoLastNonMutedVolume = 1;
                 return;
             }
 
@@ -613,6 +645,43 @@ void main(void)
             if (videoVolume) {
                 videoVolume.value = String(Number.isFinite(video.volume) ? video.volume : 1);
             }
+
+            if (videoVolumeToggle) {
+                const volume = Number.isFinite(video.volume) ? video.volume : 1;
+                const isMuted = video.muted || volume <= 0;
+
+                if (!isMuted && volume > 0) {
+                    videoLastNonMutedVolume = volume;
+                }
+
+                const iconName = isMuted ? "volume_off" : (volume > 0.5 ? "volume_high" : "volume_mid");
+                const iconLabel = isMuted ? "Unmute audio" : "Mute audio";
+
+                videoVolumeToggle.classList.toggle("is-muted", isMuted);
+                videoVolumeToggle.style.backgroundImage = 'url("assets/images/' + iconName + '.svg")';
+                videoVolumeToggle.setAttribute("aria-label", iconLabel);
+                videoVolumeToggle.title = iconLabel;
+            }
+        }
+
+        function toggleVideoMute() {
+            const video = activePanoramaVideo;
+            if (!video) return;
+
+            const isMuted = video.muted || video.volume <= 0;
+            if (isMuted) {
+                const restoreVolume = Math.max(0.01, Math.min(1, videoLastNonMutedVolume || 1));
+                video.muted = false;
+                video.volume = restoreVolume;
+            } else {
+                if (video.volume > 0) {
+                    videoLastNonMutedVolume = video.volume;
+                }
+                video.muted = true;
+                video.volume = 0;
+            }
+
+            syncVideoControlState();
         }
 
         function toggleVideoPlayback() {
@@ -649,7 +718,12 @@ void main(void)
             const volume = Math.max(0, Math.min(1, Number.parseFloat(value)));
             if (!Number.isFinite(volume)) return;
 
-            video.muted = volume === 0;
+            if (volume > 0) {
+                videoLastNonMutedVolume = volume;
+                video.muted = false;
+            } else {
+                video.muted = true;
+            }
             video.volume = volume;
         }
 
@@ -1406,6 +1480,7 @@ void main(void)
             videoSeek = document.getElementById("videoSeek");
             videoTimeLabel = document.getElementById("videoTimeLabel");
             videoVolume = document.getElementById("videoVolume");
+            videoVolumeToggle = document.getElementById("videoVolumeToggle");
 
             if (videoPlayPauseButton) {
                 videoPlayPauseButton.addEventListener("click", event => {
@@ -1425,6 +1500,13 @@ void main(void)
                 videoVolume.addEventListener("input", event => {
                     setActiveVideoVolume(event.target.value);
                     syncVideoControlState();
+                });
+            }
+
+            if (videoVolumeToggle) {
+                videoVolumeToggle.addEventListener("click", event => {
+                    event.preventDefault();
+                    toggleVideoMute();
                 });
             }
 
@@ -1565,13 +1647,15 @@ void main(void)
                 </div>
             </div>
             <div id="videoControls" class="video-controls" aria-label="Video playback controls">
-                <button id="videoPlayPauseButton" class="video-play-toggle" type="button" aria-label="Play video" title="Play video"></button>
+                <button id="videoPlayPauseButton" class="video-play-toggle" type="button" aria-label="Play video"
+                    title="Play video"></button>
                 <div class="video-time-row">
                     <input id="videoSeek" class="slider video-seek" type="range" min="0" max="1" step="0.01" value="0">
                     <span id="videoTimeLabel" class="video-time-label">0:00 / 0:00</span>
                 </div>
                 <div class="video-volume-row">
-                    <span class="video-volume-label">Volume</span>
+                    <button id="videoVolumeToggle" class="video-volume-toggle" type="button" aria-label="Mute audio"
+                        title="Mute audio"></button>
                     <input id="videoVolume" class="slider video-volume" type="range" min="0" max="1" step="0.01"
                         value="1">
                 </div>
