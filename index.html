@@ -114,6 +114,92 @@ Original: https://www.songho.ca/webgl/test_sphere.html
             outline: none;
         }
 
+        .video-controls {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            z-index: 32;
+            display: none;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(8, 14, 22, 0.72);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        .video-controls.active {
+            display: flex;
+        }
+
+        .video-controls button,
+        .video-controls input {
+            width: auto;
+        }
+
+        .video-controls .video-play-toggle {
+            min-width: 84px;
+            flex: 0 0 auto;
+        }
+
+        .video-controls .video-time-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1 1 320px;
+            min-width: 220px;
+        }
+
+        .video-controls .video-seek {
+            flex: 1 1 auto;
+            margin: 0;
+        }
+
+        .video-controls .video-time-label {
+            min-width: 100px;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .video-controls .video-volume-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 190px;
+            min-width: 160px;
+        }
+
+        .video-controls .video-volume-label {
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .video-controls .video-volume {
+            flex: 1 1 auto;
+            margin: 0;
+        }
+
+        .video-controls .slider {
+            margin: 0;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .video-controls .slider::-webkit-slider-thumb {
+            background-color: #5dd3ff;
+        }
+
+        .video-controls .slider::-moz-range-thumb {
+            background-color: #5dd3ff;
+        }
+
         .rightblock {
             position: absolute;
             top: 0;
@@ -355,6 +441,13 @@ void main(void)
         let currentStartDist = CAMERA_DIST;
         let currentMaxDist = CAMERA_DIST;
         let hasUserPanorama = false;
+        let activePanoramaVideo = null;
+        let activePanoramaVideoUrl = null;
+        let videoControls = null;
+        let videoPlayPauseButton = null;
+        let videoSeek = null;
+        let videoTimeLabel = null;
+        let videoVolume = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             setupMobileBridge();
@@ -371,6 +464,7 @@ void main(void)
 
             const lower = trimmed.toLowerCase();
             if (lower.startsWith("data:image/") ||
+                lower.startsWith("data:video/") ||
                 lower.startsWith("http://") ||
                 lower.startsWith("https://") ||
                 lower.startsWith("file://") ||
@@ -381,6 +475,242 @@ void main(void)
 
             // Accept raw base64 from native and convert to a data URL.
             return "data:" + mimeType + ";base64," + trimmed;
+        }
+
+        function isVideoMimeType(mimeType) {
+            return typeof mimeType === "string" && mimeType.toLowerCase().startsWith("video/");
+        }
+
+        function isVideoSource(source, mimeType) {
+            if (isVideoMimeType(mimeType)) return true;
+            return typeof source === "string" && source.trim().toLowerCase().startsWith("data:video/");
+        }
+
+        function releaseActivePanoramaVideo() {
+            if (activePanoramaVideo) {
+                activePanoramaVideo.pause();
+                activePanoramaVideo.removeAttribute("src");
+                activePanoramaVideo.load();
+            }
+
+            if (activePanoramaVideoUrl) {
+                URL.revokeObjectURL(activePanoramaVideoUrl);
+            }
+
+            activePanoramaVideo = null;
+            activePanoramaVideoUrl = null;
+            updateVideoControlsVisibility();
+        }
+
+        function createVideoTexture(gl, video) {
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array([0, 0, 0, 255]));
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            texture.video = video;
+            return texture;
+        }
+
+        function updateVideoTexture(gl) {
+            const video = activePanoramaVideo;
+            const texture = gl && gl.tex0;
+            if (!video || !texture || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+                return;
+            }
+
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        function formatMediaTime(seconds) {
+            if (!Number.isFinite(seconds) || seconds < 0) {
+                return "0:00";
+            }
+
+            const totalSeconds = Math.floor(seconds);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const remainingSeconds = totalSeconds % 60;
+            const paddedSeconds = String(remainingSeconds).padStart(2, "0");
+            const paddedMinutes = String(minutes).padStart(2, "0");
+
+            if (hours > 0) {
+                return hours + ":" + paddedMinutes + ":" + paddedSeconds;
+            }
+
+            return minutes + ":" + paddedSeconds;
+        }
+
+        function updateVideoControlsVisibility() {
+            if (!videoControls) return;
+            videoControls.classList.toggle("active", !!activePanoramaVideo);
+            syncVideoControlState();
+        }
+
+        function syncVideoControlState() {
+            const video = activePanoramaVideo;
+            if (!video) {
+                if (videoPlayPauseButton) videoPlayPauseButton.textContent = "Play";
+                if (videoSeek) {
+                    videoSeek.value = "0";
+                    videoSeek.max = "1";
+                }
+                if (videoTimeLabel) videoTimeLabel.textContent = "0:00 / 0:00";
+                if (videoVolume) videoVolume.value = "1";
+                return;
+            }
+
+            if (videoPlayPauseButton) {
+                videoPlayPauseButton.textContent = video.paused ? "Play" : "Pause";
+            }
+
+            if (videoSeek) {
+                const duration = Number.isFinite(video.duration) ? video.duration : 0;
+                videoSeek.max = String(Math.max(0, duration));
+                videoSeek.value = String(Math.min(Math.max(video.currentTime || 0, 0), Math.max(0, duration)));
+            }
+
+            if (videoTimeLabel) {
+                videoTimeLabel.textContent = formatMediaTime(video.currentTime || 0) + " / " + formatMediaTime(Number.isFinite(video.duration) ? video.duration : 0);
+            }
+
+            if (videoVolume) {
+                videoVolume.value = String(Number.isFinite(video.volume) ? video.volume : 1);
+            }
+        }
+
+        function toggleVideoPlayback() {
+            const video = activePanoramaVideo;
+            if (!video) return;
+
+            if (video.paused) {
+                const playPromise = video.play();
+                if (playPromise && typeof playPromise.catch === "function") {
+                    playPromise.catch(error => {
+                        log("[WARNING] Unable to start video playback: " + error.message);
+                    });
+                }
+            } else {
+                video.pause();
+            }
+        }
+
+        function seekActiveVideo(value) {
+            const video = activePanoramaVideo;
+            if (!video) return;
+
+            const nextTime = Number.parseFloat(value);
+            if (!Number.isFinite(nextTime)) return;
+
+            const duration = Number.isFinite(video.duration) ? video.duration : 0;
+            video.currentTime = Math.max(0, Math.min(duration || nextTime, nextTime));
+        }
+
+        function setActiveVideoVolume(value) {
+            const video = activePanoramaVideo;
+            if (!video) return;
+
+            const volume = Math.max(0, Math.min(1, Number.parseFloat(value)));
+            if (!Number.isFinite(volume)) return;
+
+            video.muted = volume === 0;
+            video.volume = volume;
+        }
+
+        function attachVideoControlEvents(video) {
+            const refresh = () => {
+                syncVideoControlState();
+                updateVideoTexture(gl);
+            };
+
+            video.addEventListener("loadedmetadata", refresh);
+            video.addEventListener("timeupdate", refresh);
+            video.addEventListener("play", refresh);
+            video.addEventListener("pause", refresh);
+            video.addEventListener("volumechange", syncVideoControlState);
+            video.addEventListener("durationchange", syncVideoControlState);
+            video.addEventListener("seeked", refresh);
+            video.addEventListener("ended", refresh);
+        }
+
+        function resetPanoramaCamera(markAsUserPanorama) {
+            if (!markAsUserPanorama) return;
+
+            applyResponsiveCameraProfile();
+            gl.userCustomizedFov = false;
+            gl.userCustomizedDistance = false;
+            gl.fov = currentStartFov;
+            if (gl.camera) {
+                gl.camera.distance = currentStartDist;
+            }
+            syncFovToDistance(currentStartDist);
+        }
+
+        function finalizePanoramaApply(markAsUserPanorama, mediaLabel) {
+            hasUserPanorama = !!markAsUserPanorama;
+            updateDropHintVisibility();
+            resetPanoramaCamera(markAsUserPanorama);
+            log("Panorama " + mediaLabel + " applied.");
+        }
+
+        function setPanoramaVideoSource(source, mimeType, markAsUserPanorama = true, objectUrlToManage = null) {
+            if (!gl) {
+                log("[WARNING] WebGL is not ready. Panorama video was not applied yet.");
+                return false;
+            }
+
+            const normalized = normalizePanoramaSource(source, mimeType || "video/mp4");
+            if (!normalized) {
+                log("[ERROR] Invalid panorama video source.");
+                return false;
+            }
+
+            releaseActivePanoramaVideo();
+            activePanoramaVideoUrl = objectUrlToManage;
+
+            const video = document.createElement("video");
+            video.crossOrigin = "anonymous";
+            video.muted = false;
+            video.volume = 1.0;
+            video.loop = true;
+            video.playsInline = true;
+            video.setAttribute("playsinline", "");
+            video.setAttribute("webkit-playsinline", "");
+            video.preload = "auto";
+
+            const handleReady = () => {
+                gl.tex0 = createVideoTexture(gl, video);
+                activePanoramaVideo = video;
+                attachVideoControlEvents(video);
+                updateVideoControlsVisibility();
+                updateVideoTexture(gl);
+                finalizePanoramaApply(markAsUserPanorama, "video");
+                const playPromise = video.play();
+                if (playPromise && typeof playPromise.catch === "function") {
+                    playPromise.catch(error => {
+                        log("[WARNING] Panorama video loaded, but autoplay was blocked: " + error.message);
+                    });
+                }
+            };
+
+            video.addEventListener("loadeddata", handleReady, { once: true });
+            video.addEventListener("error", () => {
+                if (objectUrlToManage && activePanoramaVideoUrl === objectUrlToManage) {
+                    URL.revokeObjectURL(objectUrlToManage);
+                    activePanoramaVideoUrl = null;
+                }
+                log("[ERROR] Failed to apply panorama video.");
+            }, { once: true });
+
+            video.src = normalized;
+            video.load();
+            return true;
         }
 
         function getResponsiveCameraProfile(width, height) {
@@ -470,35 +800,33 @@ void main(void)
                 return false;
             }
 
+            releaseActivePanoramaVideo();
+            updateVideoControlsVisibility();
+
             gl.tex0 = loadTexture(gl, normalized, true, tex => {
                 if (!tex) {
                     log("[ERROR] Failed to apply panorama image from mobile app.");
                     return;
                 }
-                hasUserPanorama = !!markAsUserPanorama;
-                updateDropHintVisibility();
-
-                // Reset camera to responsive defaults when user drops new image
-                if (markAsUserPanorama) {
-                    applyResponsiveCameraProfile();
-                    gl.userCustomizedFov = false;
-                    gl.userCustomizedDistance = false;
-                    gl.fov = currentStartFov;
-                    if (gl.camera) {
-                        gl.camera.distance = currentStartDist;
-                    }
-                    syncFovToDistance(currentStartDist);
-                }
-
-                log("Panorama image applied.");
+                finalizePanoramaApply(markAsUserPanorama, "image");
             });
             return true;
+        }
+
+        function setPanoramaMediaSource(source, mimeType, markAsUserPanorama = true) {
+            if (isVideoSource(source, mimeType)) {
+                return setPanoramaVideoSource(source, mimeType, markAsUserPanorama);
+            }
+
+            return setPanoramaImageSource(source, mimeType, markAsUserPanorama);
         }
 
         function setupMobileBridge() {
             window.SphereApp = {
                 setPanoramaImage: (source) => setPanoramaImageSource(source),
-                setPanoramaBase64: (base64, mimeType = "image/jpeg") => setPanoramaImageSource(base64, mimeType)
+                setPanoramaBase64: (base64, mimeType = "image/jpeg") => setPanoramaMediaSource(base64, mimeType),
+                setPanoramaVideo: (source) => setPanoramaVideoSource(source),
+                setPanoramaVideoBase64: (base64, mimeType = "video/mp4") => setPanoramaVideoSource(base64, mimeType)
             };
 
             window.addEventListener("message", event => {
@@ -514,10 +842,16 @@ void main(void)
                 if (!payload || typeof payload !== "object") return;
 
                 if (payload.type === "setPanorama") {
-                    setPanoramaImageSource(payload.source, payload.mimeType);
+                    setPanoramaMediaSource(payload.source, payload.mimeType);
                 }
                 else if (payload.type === "setPanoramaBase64") {
-                    setPanoramaImageSource(payload.base64, payload.mimeType || "image/jpeg");
+                    setPanoramaMediaSource(payload.base64, payload.mimeType || "image/jpeg");
+                }
+                else if (payload.type === "setPanoramaVideo") {
+                    setPanoramaVideoSource(payload.source, payload.mimeType || "video/mp4");
+                }
+                else if (payload.type === "setPanoramaVideoBase64") {
+                    setPanoramaVideoSource(payload.base64, payload.mimeType || "video/mp4");
                 }
             });
         }
@@ -595,6 +929,7 @@ void main(void)
         }
 
         function frame() {
+            updateVideoTexture(gl);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             gl.uniformMatrix4fv(gl.program.uniform.matrixView, false, gl.matrixView.m);
@@ -816,13 +1151,14 @@ void main(void)
                     return;
                 }
 
-                const imageFile = Array.from(files).find(file => file.type && file.type.startsWith("image/"));
-                if (!imageFile) {
-                    log("[WARNING] Dropped file is not an image.");
+                const mediaFile = Array.from(files).find(file =>
+                    file.type && (file.type.startsWith("image/") || file.type.startsWith("video/")));
+                if (!mediaFile) {
+                    log("[WARNING] Dropped file is not a supported image or video.");
                     return;
                 }
 
-                applyDroppedImage(imageFile);
+                applyDroppedMedia(mediaFile);
             };
 
             ["dragenter", "dragover", "dragleave", "drop"].forEach(type => {
@@ -849,19 +1185,33 @@ void main(void)
 
                 fileInput.addEventListener("change", () => {
                     if (!fileInput.files || fileInput.files.length === 0) return;
-                    const imageFile = Array.from(fileInput.files).find(file => file.type && file.type.startsWith("image/"));
-                    if (!imageFile) {
-                        log("[WARNING] Selected file is not an image.");
+                    const mediaFile = Array.from(fileInput.files).find(file =>
+                        file.type && (file.type.startsWith("image/") || file.type.startsWith("video/")));
+                    if (!mediaFile) {
+                        log("[WARNING] Selected file is not a supported image or video.");
                         return;
                     }
-                    applyDroppedImage(imageFile);
+                    applyDroppedMedia(mediaFile);
                 });
             }
 
             updateDropHintVisibility();
         }
 
-        function applyDroppedImage(file) {
+        function applyDroppedMedia(file) {
+            if (isVideoMimeType(file.type)) {
+                const objectUrl = URL.createObjectURL(file);
+                const applied = setPanoramaVideoSource(objectUrl, file.type || "video/mp4", true, objectUrl);
+                if (!applied && activePanoramaVideoUrl) {
+                    URL.revokeObjectURL(activePanoramaVideoUrl);
+                    activePanoramaVideoUrl = null;
+                }
+                else if (applied) {
+                    log("Dropped video applied: " + file.name);
+                }
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = () => {
                 if (typeof reader.result !== "string") {
@@ -1021,6 +1371,33 @@ void main(void)
 
         function initHtmlElements() {
             let contentBlock = document.querySelector(".contentblock");
+            videoControls = document.getElementById("videoControls");
+            videoPlayPauseButton = document.getElementById("videoPlayPauseButton");
+            videoSeek = document.getElementById("videoSeek");
+            videoTimeLabel = document.getElementById("videoTimeLabel");
+            videoVolume = document.getElementById("videoVolume");
+
+            if (videoPlayPauseButton) {
+                videoPlayPauseButton.addEventListener("click", event => {
+                    event.preventDefault();
+                    toggleVideoPlayback();
+                });
+            }
+
+            if (videoSeek) {
+                videoSeek.addEventListener("input", event => {
+                    seekActiveVideo(event.target.value);
+                    syncVideoControlState();
+                });
+            }
+
+            if (videoVolume) {
+                videoVolume.addEventListener("input", event => {
+                    setActiveVideoVolume(event.target.value);
+                    syncVideoControlState();
+                });
+            }
+
             let buttonTogglePanel = document.getElementById("buttonTogglePanel");
             if (buttonTogglePanel && SHOW_CONTROLS_UI) {
                 buttonTogglePanel.addEventListener("click", () => {
@@ -1152,12 +1529,24 @@ void main(void)
             <canvas id="webglView" width="300" height="300"></canvas>
             <div id="dropHint">
                 <div class="drop-hint-label">
-                    <span class="drop-hint-text">Drag and drop to show the panorama image</span>
-                    <button id="dropUploadButton" class="drop-upload-button" type="button">Choose image from
+                    <span class="drop-hint-text">Drag and drop to show a panorama image or video</span>
+                    <button id="dropUploadButton" class="drop-upload-button" type="button">Choose image or video from
                         device</button>
                 </div>
             </div>
-            <input id="fileImagePicker" type="file" accept="image/*" style="display:none;" />
+            <div id="videoControls" class="video-controls" aria-label="Video playback controls">
+                <button id="videoPlayPauseButton" class="video-play-toggle" type="button">Play</button>
+                <div class="video-time-row">
+                    <input id="videoSeek" class="slider video-seek" type="range" min="0" max="1" step="0.01" value="0">
+                    <span id="videoTimeLabel" class="video-time-label">0:00 / 0:00</span>
+                </div>
+                <div class="video-volume-row">
+                    <span class="video-volume-label">Volume</span>
+                    <input id="videoVolume" class="slider video-volume" type="range" min="0" max="1" step="0.01"
+                        value="1">
+                </div>
+            </div>
+            <input id="fileImagePicker" type="file" accept="image/*,video/*" style="display:none;" />
             <pre id="info"></pre>
         </div>
 
