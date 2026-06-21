@@ -349,7 +349,7 @@
                     <tr>
                         <td>Local app preferences</td>
                         <td>
-                            Language preference and recent links list.
+                            Language preference, recent links list or any other settings you configure within the app.
                         </td>
                         <td>To remember your settings and improve convenience.</td>
                         <td>Stored locally on your device (UserDefaults on iOS, SharedPreferences on Android).</td>
@@ -372,12 +372,12 @@
             <p>The App uses the following third-party services:</p>
             <ul>
                 <li>Google Mobile Ads (AdMob) for banner ads.</li>
-                <li>Firebase Core is initialized for Google service configuration in the app build.</li>
+                <li>Firebase services are included for Google service integration in the app build.</li>
             </ul>
             <p>
-                According to the app configuration, Firebase Analytics is set to disabled in the bundled configuration
-                file.
-                Third-party providers may still process technical data required to deliver their services.
+                The app includes Firebase and Google Mobile Ads SDKs. Depending on app/runtime configuration and
+                provider behavior, these third-party services may process technical data (such as request metadata,
+                diagnostics, or performance-related signals) required to deliver and operate their services.
             </p>
             <p>
                 See also: <a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google
@@ -408,6 +408,10 @@
                 </li>
                 <li>You can clear recent links inside the app.</li>
                 <li>You can manage media/photo permissions anytime in iOS or Android system settings.</li>
+                <li>Ad and service-related technical data processed by third-party SDKs (such as Google Mobile Ads or
+                    Firebase) is retained according to those providers' own policies and retention periods.</li>
+                <li>For third-party data controls, use your device privacy settings and provider controls where
+                    available (for example, Google account/privacy settings and ad personalization controls).</li>
             </ul>
         </section>
 

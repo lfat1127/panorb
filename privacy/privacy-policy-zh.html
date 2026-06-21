@@ -347,7 +347,7 @@
                     <tr>
                         <td>本機偏好設定</td>
                         <td>
-                            語言偏好與最近連結清單。
+                            語言偏好、最近連結清單或您在 App 中設定的其他偏好。
                         </td>
                         <td>用於記住您的設定並提升使用便利性。</td>
                         <td>儲存在裝置本機（iOS 的 UserDefaults、Android 的 SharedPreferences）。</td>
@@ -369,11 +369,11 @@
             <p>本 App 使用以下第三方服務：</p>
             <ul>
                 <li>Google Mobile Ads（AdMob），用於顯示橫幅廣告。</li>
-                <li>Firebase Core，於 App 建置時初始化 Google 服務設定。</li>
+                <li>Firebase 相關服務已納入 App 建置流程，用於整合 Google 服務。</li>
             </ul>
             <p>
-                依目前 App 設定，打包設定檔中的 Firebase Analytics 為停用狀態。
-                第三方服務供應商仍可能為提供其服務而處理必要的技術資料。
+                本 App 內含 Firebase 與 Google Mobile Ads SDK。依 App/執行環境設定與服務商實際行為，
+                這些第三方服務可能為提供與維運其功能而處理必要技術資料（例如請求中繼資料、診斷資訊或效能相關訊號）。
             </p>
             <p>
                 另請參考：<a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google
@@ -400,6 +400,8 @@
                 <li>最近連結與語言偏好會保留在裝置本機，直到您清除 App 資料或解除安裝 App。</li>
                 <li>您可在 App 內清除最近連結。</li>
                 <li>您可隨時在 iOS 或 Android 系統設定中管理媒體/照片權限。</li>
+                <li>由第三方 SDK（例如 Google Mobile Ads 或 Firebase）處理的廣告與服務相關技術資料，其保存方式與期間依各服務供應商政策而定。</li>
+                <li>如需管理第三方資料，請使用裝置隱私設定與服務商提供的控制機制（例如 Google 帳戶/隱私設定與廣告個人化控制）。</li>
             </ul>
         </section>
 
