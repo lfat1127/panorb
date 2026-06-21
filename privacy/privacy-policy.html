@@ -7,79 +7,104 @@
     <title>Privacy Policy | PanOrb</title>
     <meta name="description" content="Privacy Policy for PanOrb" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap');
+
         :root {
-            --bg-1: #f6efe3;
-            --bg-2: #dbe9ff;
-            --panel: #fffdf8;
-            --ink: #1b1e25;
-            --muted: #4e5666;
-            --accent: #0048e5;
-            --accent-2: #008a64;
-            --ring: rgba(0, 72, 229, 0.25);
-            --line: rgba(27, 30, 37, 0.12);
+            --bg-0: #09111f;
+            --bg-1: #14253e;
+            --bg-2: #21385b;
+            --ink: #ecf3ff;
+            --ink-soft: #bdd0ed;
+            --accent: #8ce99a;
+            --accent-2: #ffd18a;
+            --panel: rgba(5, 12, 23, 0.72);
+            --panel-border: rgba(255, 255, 255, 0.16);
+            --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --max-width: 980px;
         }
 
         * {
             box-sizing: border-box;
         }
 
-        html,
         body {
             margin: 0;
-            padding: 0;
+            min-height: 100vh;
             color: var(--ink);
             background:
-                radial-gradient(1200px 700px at -15% -10%, #ffd7a8 0%, transparent 70%),
-                radial-gradient(900px 700px at 105% -5%, #c2dcff 0%, transparent 65%),
-                linear-gradient(160deg, var(--bg-1), var(--bg-2));
-            font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
-            line-height: 1.6;
-            min-height: 100%;
+                radial-gradient(900px 500px at 12% 5%, rgba(255, 209, 138, 0.18), transparent 60%),
+                radial-gradient(700px 500px at 90% 8%, rgba(140, 233, 154, 0.14), transparent 60%),
+                linear-gradient(160deg, var(--bg-0), var(--bg-1) 45%, var(--bg-2));
+            background-attachment: fixed;
+            overflow-x: hidden;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
         h1,
         h2,
         h3 {
-            margin: 0 0 0.6rem 0;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
+            margin: 0;
         }
 
         h1 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 700;
+            margin: 0.65rem 0 0.75rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 5.8vw, 3.2rem);
+            letter-spacing: -0.02em;
+            line-height: 1.04;
+            max-width: 14ch;
+        }
+
+        .lead {
+            margin: 0;
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--ink-soft);
+            max-width: 64ch;
         }
 
         h2 {
-            margin-top: 2rem;
-            font-size: clamp(1.25rem, 2.2vw, 1.6rem);
-            font-weight: 650;
+            margin: 0 0 0.8rem;
+            font: 600 1.2rem/1.3 'Space Grotesk', sans-serif;
         }
 
         p,
         li {
-            color: var(--muted);
+            color: var(--ink-soft);
             font-size: 1rem;
+            line-height: 1.7;
         }
 
         a {
             color: var(--accent);
-            text-underline-offset: 2px;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 0.16em;
         }
 
-        .wrap {
-            width: min(900px, calc(100% - 2rem));
-            margin: 2.5rem auto 3rem;
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.22;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 0.6px, transparent 0.6px);
+            background-size: 3px 3px;
+            mix-blend-mode: soft-light;
+        }
+
+        .page {
+            width: min(100% - 2.2rem, var(--max-width));
+            margin: 3.5rem auto 4rem;
+            animation: rise 700ms cubic-bezier(.17, .84, .44, 1) both;
         }
 
         .hero {
-            padding: 1.5rem;
-            border: 1px solid var(--line);
-            border-radius: 22px;
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(6px);
-            box-shadow: 0 20px 50px rgba(27, 30, 37, 0.07);
-            animation: rise 620ms ease-out both;
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(155deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+            backdrop-filter: blur(10px);
+            padding: 2.4rem 2.1rem;
+            box-shadow: var(--shadow);
         }
 
         .hero-top {
@@ -90,47 +115,37 @@
         }
 
         .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 0.25rem 0.7rem;
-            font-size: 0.78rem;
-            color: var(--ink);
-            background: rgba(255, 255, 255, 0.72);
-        }
-
-        .eyebrow::before {
-            content: "";
-            width: 0.45rem;
-            height: 0.45rem;
-            border-radius: 999px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            margin: 0;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.74rem;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         .stamp {
             margin-top: 0.9rem;
             font-size: 0.95rem;
-            color: var(--muted);
+            color: var(--ink-soft);
         }
 
         .lang-switch {
             display: inline-flex;
-            gap: 0.35rem;
-            padding: 0.3rem;
+            gap: 0.4rem;
+            padding: 0.35rem;
             border-radius: 999px;
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.22);
         }
 
         .lang-link {
-            color: var(--muted);
+            color: var(--ink-soft);
             text-decoration: none;
-            font: 600 0.8rem/1 "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+            font: 600 0.82rem/1 'Space Grotesk', sans-serif;
             letter-spacing: 0.03em;
             text-transform: uppercase;
-            padding: 0.48rem 0.72rem;
+            padding: 0.5rem 0.75rem;
             border-radius: 999px;
             border: 1px solid transparent;
             transition: 180ms ease;
@@ -138,31 +153,31 @@
 
         .lang-link:hover {
             color: var(--ink);
-            border-color: rgba(27, 30, 37, 0.25);
-            background: rgba(255, 255, 255, 0.96);
+            border-color: rgba(255, 255, 255, 0.26);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .lang-link.active {
-            color: #ffffff;
-            border-color: var(--accent);
+            color: #081223;
             background: var(--accent);
+            border-color: rgba(140, 233, 154, 0.8);
         }
 
         .card {
-            margin-top: 1rem;
-            border: 1px solid var(--line);
-            border-radius: 22px;
+            margin-top: 0.85rem;
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-md);
             background: var(--panel);
-            padding: 1.2rem 1.25rem;
-            animation: rise 620ms 60ms ease-out both;
+            backdrop-filter: blur(6px);
+            padding: 1.1rem;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
             overflow: hidden;
-            border: 1px solid var(--line);
-            border-radius: 14px;
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
             display: block;
             margin-top: 0.7rem;
         }
@@ -177,7 +192,7 @@
 
         .table th,
         .table td {
-            border-bottom: 1px solid var(--line);
+            border-bottom: 1px solid var(--panel-border);
             text-align: left;
             vertical-align: top;
             padding: 0.8rem;
@@ -186,8 +201,12 @@
 
         .table th {
             color: var(--ink);
-            background: #f5f8ff;
+            background: rgba(255, 255, 255, 0.08);
             font-weight: 650;
+        }
+
+        .table td {
+            color: var(--ink-soft);
         }
 
         .table tr:last-child td {
@@ -196,8 +215,8 @@
 
         .notice {
             border-left: 4px solid var(--accent-2);
-            background: #effaf5;
-            color: #214236;
+            background: rgba(255, 209, 138, 0.08);
+            color: var(--ink-soft);
             border-radius: 10px;
             padding: 0.85rem 0.9rem;
             margin-top: 0.8rem;
@@ -206,14 +225,18 @@
 
         .footer {
             margin-top: 2.2rem;
-            color: var(--muted);
+            color: var(--ink-soft);
             font-size: 0.9rem;
+            border: 1px dashed rgba(255, 255, 255, 0.24);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.1rem;
+            background: rgba(255, 255, 255, 0.03);
         }
 
         @keyframes rise {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(22px);
             }
 
             to {
@@ -222,8 +245,9 @@
             }
         }
 
-        @media (max-width: 700px) {
-            .wrap {
+        @media (max-width: 640px) {
+            .page {
+                width: min(100% - 1.2rem, var(--max-width));
                 margin-top: 1.2rem;
             }
 
@@ -234,7 +258,15 @@
 
             .hero,
             .card {
-                border-radius: 16px;
+                border-radius: var(--radius-md);
+            }
+
+            .hero {
+                padding: 1.4rem 1rem;
+            }
+
+            .card {
+                padding: 0.95rem 0.9rem;
             }
 
             .table {
@@ -252,17 +284,18 @@
 </head>
 
 <body>
-    <main class="wrap">
+    <div class="grain" aria-hidden="true"></div>
+    <main class="page">
         <section class="hero" aria-labelledby="policy-title">
             <div class="hero-top">
-                <span class="eyebrow">PanOrb</span>
+                <p class="eyebrow">Support</p>
                 <nav class="lang-switch" aria-label="Language switcher">
                     <a class="lang-link active" href="privacy-policy.html" aria-current="page">EN</a>
                     <a class="lang-link" href="privacy-policy-zh.html" lang="zh-Hant">繁中</a>
                 </nav>
             </div>
             <h1 id="policy-title">Privacy Policy</h1>
-            <p>
+            <p class="lead">
                 This Privacy Policy explains how PanOrb ("the App") handles information
                 when you use the app on iOS and Android.
             </p>
